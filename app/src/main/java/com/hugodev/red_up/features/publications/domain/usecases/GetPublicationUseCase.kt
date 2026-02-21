@@ -1,0 +1,13 @@
+package com.hugodev.red_up.features.publications.domain.usecases
+
+import com.hugodev.red_up.features.publications.domain.entities.Publications
+import com.hugodev.red_up.features.publications.domain.repositories.PublicationRepository
+import javax.inject.Inject
+
+class GetPublicationUseCase @Inject constructor(
+    private val publicationRepository: PublicationRepository
+) {
+    suspend operator fun invoke(): Result<List<Publications>> {
+        return publicationRepository.getPublications()
+    }
+}

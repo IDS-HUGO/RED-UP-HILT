@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.features.publications.domain.entities.Publications
 import com.hugodev.red_up.features.publications.domain.usecases.CreatePublicationUseCase
+import com.hugodev.red_up.features.publications.domain.usecases.GetPublicationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -6,7 +6,7 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.3"
-kotlin = "2.3.10"
+kotlin = "2.2.10"
 composeBom = "2026.01.01"
 uiTextGoogleFonts = "1.10.2"
 lifecycleViewmodelCompose = "2.10.0"
@@ -18,7 +18,7 @@ iconsExtended = "1.7.8"
 secretsGradle = "2.0.1"
 hilt = "2.59.1"
 hiltNavigationCompose = "1.3.0"     # Procesador de anotaciones (puedes usar kapt o ksp)
-ksp = "1.9.21-1.0.16"               # Asegúrate de que coincida con tu versión de Kotlin
+ksp = "2.2.10-2.0.2"                # Compatible con Kotlin 2.2.10
 
 
 [libraries]
