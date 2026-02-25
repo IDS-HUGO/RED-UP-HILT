@@ -1,19 +1,15 @@
 package com.hugodev.red_up.features.publications.domain.entities
 
-data class  Publications(
-    val id: Int,
-    val usuarioId: Int,
+data class Publications(
+    val id: Long,
+    val autorId: Long,
     val titulo: String,
     val contenido: String,
-    val imagenUrl: String? = null,
-    val carreraId: Int? = null,
-    val tipoPublicacion: String,
-    val activo: Boolean,
-    val createdAt: String,
-    val updatedAt: String,
-    val usuarioNombre: String = "",
-    val usuarioApellido: String = "",
-    val usuarioEmail: String = "",
-    val totalLikes: Int = 0,
+    val audiencia: String,
+    val publicadaEn: String,
+    val autorNombre: String = "",
+    val autorApellido: String = "",
+    val autorFotoUrl: String? = null,
+    val totalReacciones: Int = 0,
     val totalComentarios: Int = 0
 )

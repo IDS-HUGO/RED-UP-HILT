@@ -28,8 +28,7 @@ class PublicationRepositoryImpl @Inject constructor(
                 CreatePublicationRequestDto(
                     titulo = titulo,
                     contenido = contenido,
-                    imagenUrl = imagenUrl,
-                    tipoPublicacion = tipoPublicacion
+                    audiencia = if (tipoPublicacion.equals("GENERAL", true)) "general" else "carrera"
                 )
             ).toDomain()
         }

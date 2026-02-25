@@ -6,4 +6,8 @@ import javax.inject.Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class UpRedRetrofit
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class SocketBaseUrl
+
 

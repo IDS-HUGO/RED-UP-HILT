@@ -51,12 +51,15 @@ android {
             dimension = "environment"
             buildConfigField("String", "BASE_URL_RICK", "\"https://rickandmortyapi.com/api/\"")
             buildConfigField("String", "BASE_URL_JSON", "\"https://jsonplaceholder.typicode.com/\"")
+            buildConfigField("String", "BASE_URL_UPRED", "\"http://10.0.2.2:8000/\"")
+            buildConfigField("String", "WS_URL", "\"http://10.0.2.2:5000\"")
             resValue("string", "app_name", "Demo (DEV)")
         }
 
         create("prod") {
             dimension = "environment"
             buildConfigField("String", "BASE_URL_UPRED", "\"http://34.239.246.103:8000/\"")
+            buildConfigField("String", "WS_URL", "\"http://34.239.246.103:5000\"")
             resValue("string", "app_name", "Demo")
         }
     }
@@ -80,6 +83,7 @@ kotlin {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -89,6 +93,7 @@ dependencies {
 
     implementation(libs.androidx.compose.ui.text.google.fonts)      // G Fonts
     implementation(libs.androidx.lifecycle.viewmodel.compose)       // viewModel()
+    implementation(libs.androidx.datastore.preferences)             // DataStore
     implementation(libs.com.squareup.retrofit2.retrofit)            // Retrofit
     implementation(libs.com.squareup.retrofit2.converter.json)      // JSON
     implementation(libs.io.coil.kt.coil.compose)                    // Coil
@@ -96,6 +101,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)   // Icons extendend
     implementation(libs.hilt.android)                               // Implementación de Hilt
     implementation(libs.hilt.navigation.compose)                    // Integración con Jetpack Compose
+    implementation(libs.io.socket.socket.io.client)                 // Socket.IO client
     ksp(libs.hilt.compiler)                                         // KSP
 
 
