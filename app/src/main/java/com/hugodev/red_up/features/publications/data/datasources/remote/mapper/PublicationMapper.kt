@@ -7,19 +7,18 @@ import com.hugodev.red_up.features.publications.domain.entities.Publications
 fun PublicationDto.toDomain(): Publications {
     return Publications(
         id = this.id,
-        usuarioId = this.usuarioId,
+        autorId = this.autorId,
         titulo = this.titulo,
         contenido = this.contenido,
-        imagenUrl = this.imagenUrl,
-        carreraId = this.carreraId,
-        tipoPublicacion = this.tipoPublicacion,
-        activo = this.activo,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt,
-        usuarioNombre = this.usuarioNombre,
-        usuarioApellido = this.usuarioApellido,
-        usuarioEmail = this.usuarioEmail,
-        totalLikes = this.totalLikes,
+        audiencia = this.audiencia,
+        publicadaEn = this.publicadaEn,
+        autorNombre = this.autor?.nombre.orEmpty(),
+        autorApellido = listOfNotNull(
+            this.autor?.apellidoPaterno,
+            this.autor?.apellidoMaterno
+        ).joinToString(" "),
+        autorFotoUrl = this.autor?.fotoPerfilUrl,
+        totalReacciones = this.totalReacciones,
         totalComentarios = this.totalComentarios
     )
 }

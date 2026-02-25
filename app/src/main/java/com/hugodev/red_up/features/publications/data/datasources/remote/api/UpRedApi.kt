@@ -7,10 +7,10 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface UpRedApi {
-    @GET("posts")
+    @GET("api/publicaciones")
     suspend fun getPublications(): List<PublicationDto>
 
-    @POST("posts")
+    @POST("api/publicaciones")
     suspend fun createPublication(
         @Body request: CreatePublicationRequestDto
     ): PublicationDto
