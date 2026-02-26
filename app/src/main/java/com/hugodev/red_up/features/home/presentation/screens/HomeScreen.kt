@@ -46,7 +46,8 @@ import com.hugodev.red_up.features.publications.domain.entities.Publications
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToChat: (String, String, String) -> Unit = { _, _, _ -> }
+    onNavigateToChat: (String, String, String) -> Unit = { _, _, _ -> },
+    onNavigateToGroups: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var toUserId by remember { mutableStateOf("") }
@@ -87,7 +88,7 @@ fun HomeScreen(
             }
 
             item {
-                ChatQuickAccess(onNavigateToChat = onNavigateToChat)
+                ChatQuickAccess(onNavigateToGroups = onNavigateToGroups)
             }
 
             item {
@@ -132,7 +133,7 @@ fun HomeScreen(
 
 @Composable
 private fun ChatQuickAccess(
-    onNavigateToChat: (String, String, String) -> Unit
+    onNavigateToGroups: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -150,12 +151,12 @@ private fun ChatQuickAccess(
             )
             
             Button(
-                onClick = { onNavigateToChat("grupo_carrera", "Grupo Carrera", "grupal") },
+                onClick = onNavigateToGroups,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Groups, contentDescription = null)
                 Spacer(modifier = Modifier.padding(4.dp))
-                Text(text = "Ir a Chat Grupal")
+                Text(text = "Ver Mis Grupos")
             }
         }
     }

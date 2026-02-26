@@ -13,6 +13,10 @@ import com.hugodev.red_up.features.auth.presentation.viewmodels.LoginViewModel
 import com.hugodev.red_up.features.auth.presentation.viewmodels.RegisterViewModel
 import com.hugodev.red_up.features.chat.presentation.screens.ChatScreen
 import com.hugodev.red_up.features.chat.presentation.viewmodels.ChatViewModel
+import com.hugodev.red_up.features.groups.presentation.screens.CreateGroupScreen
+import com.hugodev.red_up.features.groups.presentation.screens.GroupsListScreen
+import com.hugodev.red_up.features.groups.presentation.viewmodels.CreateGroupViewModel
+import com.hugodev.red_up.features.groups.presentation.viewmodels.GroupsListViewModel
 import com.hugodev.red_up.features.home.presentation.screens.HomeScreen
 import com.hugodev.red_up.features.publications.presentation.viewmodels.CreatePublicacionViewModel
 import com.hugodev.red_up.features.publications.presentation.viewmodels.PublicacionesListViewModel
@@ -75,7 +79,34 @@ fun NavigationGraph(
             HomeScreen(
                 onNavigateToChat = { roomId, roomName, roomType ->
                     navController.navigate(Screen.Chat.createRoute(roomId, roomName, roomType))
+                },
+                onNavigateToGroups = {
+                    navController.navigate(Screen.GroupsList.route)
                 }
+            )
+        }
+
+        composable(Screen.GroupsList.route) {
+            val viewModel: GroupsListViewModel = hiltViewModel()
+            GroupsListScreen(
+                onBackClick = { navController.popBackStack() },
+                onCreateGroupClick = { navController.navigate(Screen.CreateGroup.route) },
+                onGroupClick = { groupId, groupName ->
+                    navController.navigate(Screen.Chat.createRoute(groupId.toString(), groupName, "grupal"))
+                },
+                viewModel = viewModel
+            )
+        }
+
+        composable(Screen.CreateGroup.route) {
+            val viewModel: CreateGroupViewModel = hiltViewModel()
+            CreateGroupScreen(
+                onBackClick = { navController.popBackStack() },
+                onGroupCreated = { groupId, groupName ->
+                    navController.popBackStack()
+                    navController.navigate(Screen.Chat.createRoute(groupId.toString(), groupName, "grupal"))
+                },
+                viewModel = viewModel
             )
         }
 
