@@ -72,10 +72,38 @@ fun NavigationGraph(
                 onNavigateToGroupDetail = { groupId ->
                     // TODO: Navegar a detalle de grupo
                 },
-                onNavigateToChatScreen = { roomId, roomName, roomType ->
-                    // TODO: Navegar a chat
+                onNavigateToChatScreen = { userId, userName, userEmail ->
+
+                    val encodedName = android.net.Uri.encode(userName)
+                    val encodedEmail = android.net.Uri.encode(userEmail)
+
+                    navController.navigate(
+                        Screen.ChatScreen.createRoute(
+                            userId,
+                            encodedName,
+                            encodedEmail
+                        )
+                    )
                 }
             )
         }
+
+
+        composable(
+            route = Screen.ChatScreen.route
+        ) { backStackEntry ->
+
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            val userName = backStackEntry.arguments?.getString("userName") ?: ""
+            val userEmail = backStackEntry.arguments?.getString("userEmail") ?: ""
+
+            com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatScreen(
+                userId = userId,
+                userName = userName,
+                userEmail = userEmail
+            )
+        }
+
+
     }
 }
