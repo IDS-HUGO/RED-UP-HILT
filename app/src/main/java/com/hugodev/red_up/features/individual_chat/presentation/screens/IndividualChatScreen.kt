@@ -22,7 +22,7 @@ fun IndividualChatScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Join to sala directa
+    // Unirse a la sala directa
     LaunchedEffect(userId) {
         viewModel.joinRoom(
             roomId = userId,
