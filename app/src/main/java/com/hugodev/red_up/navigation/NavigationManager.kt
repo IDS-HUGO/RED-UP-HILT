@@ -32,17 +32,19 @@ class NavigationManagerImpl @Inject constructor() : NavigationManager {
     }
 
     override fun navigateToPublicacionesList() {
-        navController?.navigate(Screen.PublicacionesList.route) {
+        navController?.navigate(Screen.HomeFeed.route) {
             popUpTo(0)
         }
     }
 
     override fun navigateToCreatePublicacion() {
-        navController?.navigate(Screen.CreatePublicacion.route)
+        // Navega al home feed
+        navController?.navigate(Screen.HomeFeed.route)
     }
 
     override fun navigateToEditPublicacion(publicacionId: Int) {
-        navController?.navigate(Screen.EditPublicacion.createRoute(publicacionId))
+        // Navega al home feed
+        navController?.navigate(Screen.HomeFeed.route)
     }
 
     override fun navigateToLogin() {

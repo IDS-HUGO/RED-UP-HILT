@@ -1,9 +1,12 @@
 package com.hugodev.red_up.features.individual_chat.presentation.viewmodels
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.features.individual_chat.presentation.screens.ChatUser
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 data class IndividualChatUiState(
@@ -16,15 +19,15 @@ data class IndividualChatUiState(
 @HiltViewModel
 class IndividualChatViewModel @Inject constructor() : ViewModel() {
 
-    var uiState = mutableStateOf(IndividualChatUiState())
-        private set
+    private val _uiState = MutableStateFlow(IndividualChatUiState())
+    val uiState: StateFlow<IndividualChatUiState> = _uiState.asStateFlow()
 
     init {
         loadChats()
     }
 
     private fun loadChats() {
-        uiState.value = uiState.value.copy(isLoading = true)
+        _uiState.value = _uiState.value.copy(isLoading = true)
         // TODO: Implementar lógica de carga de chats individuales
         // - Obtener lista de conversaciones del usuario
         // - Ordenar por timestamp del último mensaje
@@ -38,10 +41,10 @@ class IndividualChatViewModel @Inject constructor() : ViewModel() {
     }
 
     fun selectChat(userId: String) {
-        uiState.value = uiState.value.copy(selectedUserId = userId)
+        _uiState.value = _uiState.value.copy(selectedUserId = userId)
     }
 
     fun clearError() {
-        uiState.value = uiState.value.copy(error = null)
+        _uiState.value = _uiState.value.copy(error = null)
     }
 }

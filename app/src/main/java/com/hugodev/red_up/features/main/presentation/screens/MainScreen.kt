@@ -21,12 +21,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.hugodev.red_up.features.home.presentation.screens.HomeFeedScreen
 import com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatListScreen
 import com.hugodev.red_up.features.groups_chat.presentation.screens.GroupsChatListScreen
 import com.hugodev.red_up.navigation.Screen
 
-enum class BottomNavItem(val route: String, val label: String, val icon: androidx.compose.material.icons.Icons.Filled) {
+enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
     Home(Screen.HomeFeed.route, "Feed", Icons.Default.Home),
     GroupsChat(Screen.GroupsChat.route, "Grupos", Icons.Default.People),
     IndividualChat(Screen.IndividualChat.route, "Mensajes", Icons.Default.Mail)
@@ -36,7 +37,7 @@ enum class BottomNavItem(val route: String, val label: String, val icon: android
 fun MainScreen(
     navController: NavHostController = rememberNavController(),
     onNavigateToLogin: () -> Unit = {},
-    onNavigateToGroupDetail: (Long) -> Unit = {},
+    onNavigateToGroupDetail: (String) -> Unit = {},
     onNavigateToChatScreen: (String, String, String) -> Unit = { _, _, _ -> }
 ) {
     var selectedItem by remember { mutableStateOf(0) }
