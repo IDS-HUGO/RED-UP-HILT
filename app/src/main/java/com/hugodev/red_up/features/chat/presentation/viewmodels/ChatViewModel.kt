@@ -3,6 +3,7 @@ package com.hugodev.red_up.features.chat.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.core.data.AuthPreferences
+import com.hugodev.red_up.features.chat.data.repositories.SocketIoChatRepository
 import com.hugodev.red_up.features.chat.domain.entities.ChatMessage
 import com.hugodev.red_up.features.chat.domain.usecases.ConnectToChatUseCase
 import com.hugodev.red_up.features.chat.domain.usecases.DisconnectFromChatUseCase
@@ -45,9 +46,9 @@ class ChatViewModel @Inject constructor(
     private val observeChatMessagesUseCase: ObserveChatMessagesUseCase,
     private val observeChatConnectionUseCase: ObserveChatConnectionUseCase,
     private val authPreferences: AuthPreferences,
-
     private val joinDirectChatUseCase: JoinDirectChatUseCase,
     private val observeJoinedRoomUseCase: ObserveJoinedRoomUseCase,
+    private val socketIoChatRepository: SocketIoChatRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -66,6 +67,7 @@ class ChatViewModel @Inject constructor(
         observeMessages()
         observeConnectionState()
         observeJoinedRoom()
+        observeMessageHistory()
         initializeUserId()
     }
 
@@ -195,6 +197,9 @@ class ChatViewModel @Inject constructor(
                     currentRoomId = salaUuid
                 )
                 
+                // Cargar historial de mensajes
+                socketIoChatRepository.loadMessageHistory(salaUuid, limit = 50)
+                
                 // Enviar mensajes que estaban pendientes
                 if (messageQueue.isNotEmpty()) {
                     messageQueue.forEach { message ->
@@ -204,6 +209,17 @@ class ChatViewModel @Inject constructor(
                     messageQueue.clear()
                     _uiState.value = _uiState.value.copy(pendingMessages = emptyList())
                 }
+            }
+        }
+    }
+
+    private fun observeMessageHistory() {
+        viewModelScope.launch {
+            socketIoChatRepository.observeMessageHistory().collect { historyMessages ->
+                // Insertar los mensajes del historial al inicio de la lista
+                val currentMessages = _uiState.value.messages.toMutableList()
+                currentMessages.addAll(0, historyMessages)
+                _uiState.value = _uiState.value.copy(messages = currentMessages)
             }
         }
     }

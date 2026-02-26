@@ -8,6 +8,7 @@ data class ChatMessageDto(
     @SerializedName("message") val message: String,
     @SerializedName("sender_id") val senderId: String,
     @SerializedName("sender_name") val senderName: String? = null,
+    @SerializedName("sender_email") val senderEmail: String? = null,
     @SerializedName("timestamp") val timestamp: String,
     @SerializedName("type") val type: String,
     @SerializedName("message_type") val messageType: String = "texto",

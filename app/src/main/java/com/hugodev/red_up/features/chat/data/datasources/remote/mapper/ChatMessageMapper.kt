@@ -11,6 +11,7 @@ fun ChatMessageDto.toDomain(): ChatMessage {
         message = message,
         senderId = senderId,
         senderName = senderName,
+        senderEmail = senderEmail,
         timestamp = timestamp,
         type = type,
         messageType = messageType,
@@ -25,6 +26,7 @@ fun ChatMessage.toDto(): ChatMessageDto {
         message = message,
         senderId = senderId,
         senderName = senderName,
+        senderEmail = senderEmail,
         timestamp = timestamp,
         type = type,
         messageType = messageType,
@@ -39,6 +41,7 @@ fun JSONObject.toChatMessage(): ChatMessage {
         message = optString("message"),
         senderId = optString("from").ifEmpty { optString("sender_id") },  // Puede venir como 'from' o 'sender_id'
         senderName = optString("sender_name", null),
+        senderEmail = optString("sender_email", null),
         timestamp = optString("timestamp"),
         type = optString("type", "directo"),
         messageType = optString("message_type", "texto"),

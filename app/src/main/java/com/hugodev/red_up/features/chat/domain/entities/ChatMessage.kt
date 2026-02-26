@@ -6,6 +6,7 @@ data class ChatMessage(
     val message: String,
     val senderId: String,
     val senderName: String? = null,
+    val senderEmail: String? = null,
     val timestamp: String,
     val type: String, // "directo" o "grupal"
     val messageType: String = "texto", // texto, imagen, archivo, audio, sistema
