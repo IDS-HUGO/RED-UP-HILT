@@ -183,12 +183,31 @@ fun MessageItem(
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
-                if (!isOwnMessage && !message.senderName.isNullOrBlank()) {
+                // Mostrar información del remitente
+                if (isOwnMessage) {
+                    // Para mensajes propios, mostrar "(TU)"
                     Text(
-                        text = message.senderName,
+                        text = "(TÚ)",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
+                } else {
+                    // Para mensajes de otros, mostrar nombre completo y correo
+                    Column {
+                        Text(
+                            text = message.senderName ?: "Usuario Desconocido",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        if (!message.senderEmail.isNullOrBlank()) {
+                            Text(
+                                text = message.senderEmail,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
                 
                 Text(
@@ -198,7 +217,8 @@ fun MessageItem(
                         MaterialTheme.colorScheme.onSurfaceVariant
                     } else {
                         MaterialTheme.colorScheme.onSurface
-                    }
+                    },
+                    modifier = Modifier.padding(top = 8.dp)
                 )
                 
                 Row(

@@ -22,6 +22,7 @@ class SocketIoChatRepository @Inject constructor(
 ) : ChatRepository {
 
     private val messagesFlow = MutableSharedFlow<ChatMessage>(extraBufferCapacity = 64)
+    private val historyFlow = MutableSharedFlow<List<ChatMessage>>(replay = 1)
     private val connectionFlow = MutableStateFlow(false)
     private var socket: Socket? = null
     private val TAG = "SocketIoChatRepository"
@@ -102,6 +103,26 @@ class SocketIoChatRepository @Inject constructor(
                         Log.e(TAG, "Error parsing group_joined", e)
                     }
                 }
+
+                on("message_history_loaded") { args ->
+                    try {
+                        val payload = args.firstOrNull() as? JSONObject ?: return@on
+                        Log.d(TAG, "Message history loaded: ${payload.optInt("message_count")} messages")
+                        
+                        val messagesArray = payload.optJSONArray("messages") ?: return@on
+                        val messagesList = mutableListOf<ChatMessage>()
+                        
+                        for (i in 0 until messagesArray.length()) {
+                            val msgObj = messagesArray.getJSONObject(i)
+                            val message = msgObj.toChatMessage()
+                            messagesList.add(message)
+                        }
+                        
+                        historyFlow.tryEmit(messagesList)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing message_history_loaded", e)
+                    }
+                }
                 
                 connect()
             }
@@ -151,6 +172,17 @@ class SocketIoChatRepository @Inject constructor(
             Log.e(TAG, "Cannot join direct chat: Socket not connected")
         }
     }
+
+    fun loadMessageHistory(salaUuid: String, limit: Int = 50) {
+        val payload = JSONObject().apply {
+            put("sala_uuid", salaUuid)
+            put("limit", limit)
+        }
+        Log.d(TAG, "Loading message history for sala_uuid=$salaUuid with limit=$limit")
+        socket?.emit("load_message_history", payload)
+    }
+
+    fun observeMessageHistory(): Flow<List<ChatMessage>> = historyFlow
 
     override fun observeJoinedRoom(): Flow<String> = merge(roomFlow, groupJoinedFlow)
 }
