@@ -72,8 +72,18 @@ fun NavigationGraph(
                 onNavigateToGroupDetail = { groupId ->
                     // TODO: Navegar a detalle de grupo
                 },
-                onNavigateToChatScreen = { roomId, roomName, roomType ->
-                    // TODO: Navegar a chat
+                onNavigateToChatScreen = { userId, userName, userEmail ->
+
+                    val encodedName = android.net.Uri.encode(userName)
+                    val encodedEmail = android.net.Uri.encode(userEmail)
+
+                    navController.navigate(
+                        Screen.ChatScreen.createRoute(
+                            userId,
+                            encodedName,
+                            encodedEmail
+                        )
+                    )
                 }
             )
         }
