@@ -49,12 +49,13 @@ data class GroupChatItem(
 fun GroupsChatListScreen(
     viewModel: GroupsChatViewModel = hiltViewModel(),
     onNavigateToGroupDetail: (String) -> Unit = {},
-    onNavigateToChatScreen: (String, String, String) -> Unit = { _, _, _ -> }
+    onNavigateToChatScreen: (String, String, String) -> Unit = { _, _, _ -> },
+    onNavigateToCreateGroup: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        // Cargar grupos del usuario
+        viewModel.loadMyGroups()
     }
 
     Scaffold(
@@ -65,7 +66,7 @@ fun GroupsChatListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* Crear grupo */ },
+                onClick = onNavigateToCreateGroup,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {

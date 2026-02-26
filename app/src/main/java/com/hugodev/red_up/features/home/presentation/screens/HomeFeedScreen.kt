@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +52,7 @@ import com.hugodev.red_up.features.publications.domain.entities.Publications
 fun HomeFeedScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit = {},
+    onNavigateToCreatePublication: () -> Unit = {},
     onNavigateToGroupChat: (Long, String) -> Unit = { _, _ -> },
     onNavigateToIndividualChat: (String, String) -> Unit = { _, _ -> }
 ) {
@@ -74,20 +76,26 @@ fun HomeFeedScreen(
             TopAppBar(
                 title = { Text(text = "UPRed - Feed") },
                 actions = {
+                    Button(
+                        onClick = onNavigateToCreatePublication,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        ),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Add, 
+                            contentDescription = "Nueva publicación",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.padding(2.dp))
+                        Text("Publicar")
+                    }
                     IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión", tint = MaterialTheme.colorScheme.error)
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Navegar a crear publicación */ },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Crear publicación")
-            }
         }
     ) { padding ->
         LazyColumn(

@@ -17,17 +17,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +61,7 @@ fun IndividualChatListScreen(
     onNavigateToChatScreen: (String, String, String) -> Unit = { _, _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showSearchDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -62,7 +71,7 @@ fun IndividualChatListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* Buscar usuario para chat */ },
+                onClick = { showSearchDialog = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
@@ -131,6 +140,109 @@ fun IndividualChatListScreen(
             }
         }
     }
+    
+    // Diálogo de búsqueda de usuarios
+    if (showSearchDialog) {
+        SearchUserDialog(
+            viewModel = viewModel,
+            onDismiss = { showSearchDialog = false },
+            onUserSelected = { userId, userName, userEmail ->
+                showSearchDialog = false
+                onNavigateToChatScreen(userId, userName, userEmail)
+            }
+        )
+    }
+}
+
+@Composable
+private fun SearchUserDialog(
+    viewModel: IndividualChatViewModel,
+    onDismiss: () -> Unit,
+    onUserSelected: (String, String, String) -> Unit
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+    val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Buscar Usuario") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = {
+                        searchQuery = it
+                        viewModel.searchUsers(it)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Nombre o correo...") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar")
+                    },
+                    singleLine = true
+                )
+                
+                if (isSearching) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    }
+                } else if (searchResults.isNotEmpty()) {
+                    Text(
+                        "Resultados:",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    LazyColumn(
+                        modifier = Modifier.height(200.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        items(searchResults) { user ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onUserSelected(
+                                            user.id.toString(),
+                                            "${user.nombre} ${user.apellido}",
+                                            user.correo
+                                        )
+                                    }
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = "${user.nombre} ${user.apellido}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = user.correo,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else if (searchQuery.length >= 3) {
+                    Text(
+                        "No se encontraron usuarios",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @Composable
