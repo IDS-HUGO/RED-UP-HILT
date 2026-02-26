@@ -77,5 +77,23 @@ fun NavigationGraph(
                 }
             )
         }
+
+
+        composable(
+            route = Screen.ChatScreen.route
+        ) { backStackEntry ->
+
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            val userName = backStackEntry.arguments?.getString("userName") ?: ""
+            val userEmail = backStackEntry.arguments?.getString("userEmail") ?: ""
+
+            com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatScreen(
+                userId = userId,
+                userName = userName,
+                userEmail = userEmail
+            )
+        }
+
+
     }
 }
