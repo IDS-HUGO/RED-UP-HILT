@@ -1,6 +1,9 @@
 package com.hugodev.red_up.features.chat.data.repositories
 
+import android.util.Log
 import com.hugodev.red_up.core.di.SocketBaseUrl
+import com.hugodev.red_up.features.chat.data.datasources.remote.mapper.toChatMessage
+import com.hugodev.red_up.features.chat.data.datasources.remote.mapper.toJsonObject
 import com.hugodev.red_up.features.chat.domain.entities.ChatMessage
 import com.hugodev.red_up.features.chat.domain.repositories.ChatRepository
 import io.socket.client.IO
@@ -20,35 +23,70 @@ class SocketIoChatRepository @Inject constructor(
     private val messagesFlow = MutableSharedFlow<ChatMessage>(extraBufferCapacity = 64)
     private val connectionFlow = MutableStateFlow(false)
     private var socket: Socket? = null
+    private val TAG = "SocketIoChatRepository"
 
     override fun connect(userId: String) {
-        if (socket?.connected() == true) return
-
-        val options = IO.Options().apply {
-            query = "user_id=$userId"
-            transports = arrayOf("websocket")
-            reconnection = true
+        if (socket?.connected() == true) {
+            Log.d(TAG, "Already connected")
+            return
         }
 
-        socket = IO.socket(socketBaseUrl, options).apply {
-            on(Socket.EVENT_CONNECT) {
-                connectionFlow.value = true
+        try {
+            val options = IO.Options().apply {
+                query = "user_id=$userId"
+                transports = arrayOf("websocket")
+                reconnection = true
+                reconnectionDelay = 1000
+                reconnectionDelayMax = 5000
             }
-            on("connected") {
-                connectionFlow.value = true
+
+            socket = IO.socket(socketBaseUrl, options).apply {
+                on(Socket.EVENT_CONNECT) {
+                    Log.d(TAG, "WebSocket connected")
+                    connectionFlow.value = true
+                }
+                
+                on("connected") { args ->
+                    Log.d(TAG, "Server acknowledged connection: ${args.contentToString()}")
+                    connectionFlow.value = true
+                }
+                
+                on(Socket.EVENT_DISCONNECT) {
+                    Log.d(TAG, "WebSocket disconnected")
+                    connectionFlow.value = false
+                }
+                
+                on(Socket.EVENT_CONNECT_ERROR) { args ->
+                    Log.e(TAG, "Connection error: ${args.contentToString()}")
+                    connectionFlow.value = false
+                }
+                
+                on("receive_message") { args ->
+                    try {
+                        val payload = args.firstOrNull() as? JSONObject ?: return@on
+                        Log.d(TAG, "Received message: $payload")
+                        val message = payload.toChatMessage()
+                        messagesFlow.tryEmit(message)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing message", e)
+                    }
+                }
+                
+                on("ack") { args ->
+                    Log.d(TAG, "Message acknowledged: ${args.contentToString()}")
+                }
+                
+                connect()
             }
-            on(Socket.EVENT_DISCONNECT) {
-                connectionFlow.value = false
-            }
-            on("receive_message") { args ->
-                val payload = args.firstOrNull() as? JSONObject ?: return@on
-                messagesFlow.tryEmit(payload.toChatMessage())
-            }
-            connect()
+            
+            Log.d(TAG, "Connecting to $socketBaseUrl with user_id=$userId")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating socket", e)
         }
     }
 
     override fun disconnect() {
+        Log.d(TAG, "Disconnecting...")
         socket?.disconnect()
         socket?.off()
         socket = null
@@ -59,31 +97,17 @@ class SocketIoChatRepository @Inject constructor(
         val payload = JSONObject().apply {
             put("group_id", groupId)
         }
+        Log.d(TAG, "Joining group: $groupId")
         socket?.emit("join_group", payload)
     }
 
     override fun sendMessage(message: ChatMessage) {
-        val payload = JSONObject().apply {
-            put("to", message.to)
-            put("message", message.message)
-            put("sender_id", message.senderId)
-            put("timestamp", message.timestamp)
-            put("type", message.type)
-        }
+        val payload = message.toJsonObject()
+        Log.d(TAG, "Sending message: $payload")
         socket?.emit("send_message", payload)
     }
 
     override fun observeMessages(): Flow<ChatMessage> = messagesFlow
 
     override fun observeConnection(): Flow<Boolean> = connectionFlow
-
-    private fun JSONObject.toChatMessage(): ChatMessage {
-        return ChatMessage(
-            to = optString("to"),
-            message = optString("message"),
-            senderId = optString("sender_id"),
-            timestamp = optString("timestamp"),
-            type = optString("type")
-        )
-    }
 }

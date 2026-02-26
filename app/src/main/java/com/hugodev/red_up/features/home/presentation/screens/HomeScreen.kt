@@ -46,7 +46,7 @@ import com.hugodev.red_up.features.publications.domain.entities.Publications
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToGroupChat: (String, String) -> Unit = { _, _ -> }
+    onNavigateToChat: (String, String, String) -> Unit = { _, _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var toUserId by remember { mutableStateOf("") }
@@ -85,13 +85,11 @@ fun HomeScreen(
                     userId = uiState.userId
                 )
             }
-GroupChatQuickAccess(
-                    onNavigateToGroupChat = onNavigateToGroupChat
-                )
-            }
 
             item {
-                
+                ChatQuickAccess(onNavigateToChat = onNavigateToChat)
+            }
+
             item {
                 MessageComposer(
                     toUserId = toUserId,
@@ -127,8 +125,14 @@ GroupChatQuickAccess(
 
             items(uiState.publicaciones) { publication ->
                 PublicationCard(publication)
-            GroupChatQuickAccess(
-    onNavigateToGroupChat: (String, String) -> Unit
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatQuickAccess(
+    onNavigateToChat: (String, String, String) -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -136,28 +140,23 @@ GroupChatQuickAccess(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Chat Grupal",
-                style = MaterialTheme.typography.titleSmall
+                text = "Chat en Tiempo Real",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Únete a un grupo para chatear en tiempo real",
-                style = MaterialTheme.typography.bodySmall
+                text = "Únete a conversaciones grupales",
+                style = MaterialTheme.typography.bodyMedium
             )
             
             Button(
-                onClick = { onNavigateToGroupChat("grupo_demo", "Grupo Demo") },
+                onClick = { onNavigateToChat("grupo_carrera", "Grupo Carrera", "grupal") },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Groups, contentDescription = null)
                 Spacer(modifier = Modifier.padding(4.dp))
-                Text(text = "Ir a Grupo Demo")
+                Text(text = "Ir a Chat Grupal")
             }
-        }
-    }
-}
-
-@Composable
-private fun }
         }
     }
 }

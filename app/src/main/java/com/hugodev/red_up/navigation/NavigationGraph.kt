@@ -11,8 +11,8 @@ import com.hugodev.red_up.features.auth.presentation.screens.LoginScreen
 import com.hugodev.red_up.features.auth.presentation.screens.RegisterScreen
 import com.hugodev.red_up.features.auth.presentation.viewmodels.LoginViewModel
 import com.hugodev.red_up.features.auth.presentation.viewmodels.RegisterViewModel
-import com.hugodev.red_up.features.groups.presentation.screens.GroupChatScreen
-import com.hugodev.red_up.features.groups.presentation.viewmodels.GroupChatViewModel
+import com.hugodev.red_up.features.chat.presentation.screens.ChatScreen
+import com.hugodev.red_up.features.chat.presentation.viewmodels.ChatViewModel
 import com.hugodev.red_up.features.home.presentation.screens.HomeScreen
 import com.hugodev.red_up.features.publications.presentation.viewmodels.CreatePublicacionViewModel
 import com.hugodev.red_up.features.publications.presentation.viewmodels.PublicacionesListViewModel
@@ -73,19 +73,21 @@ fun NavigationGraph(
 
         composable(Screen.Home.route) {
             HomeScreen(
-                onNavigateToGroupChat = { groupId, groupName ->
-                    navController.navigate(Screen.GroupChat.createRoute(groupId, groupName))
+                onNavigateToChat = { roomId, roomName, roomType ->
+                    navController.navigate(Screen.Chat.createRoute(roomId, roomName, roomType))
                 }
             )
         }
 
-        composable(Screen.GroupChat.route) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
-            val groupName = backStackEntry.arguments?.getString("groupName") ?: ""
-            val viewModel: GroupChatViewModel = hiltViewModel()
-            GroupChatScreen(
-                groupId = groupId,
-                groupName = groupName,
+        composable(Screen.Chat.route) { backStackEntry ->
+            val roomId = backStackEntry.arguments?.getString("roomId") ?: ""
+            val roomName = backStackEntry.arguments?.getString("roomName") ?: ""
+            val roomType = backStackEntry.arguments?.getString("roomType") ?: "grupal"
+            val viewModel: ChatViewModel = hiltViewModel()
+            ChatScreen(
+                roomId = roomId,
+                roomName = roomName,
+                roomType = roomType,
                 onBackClick = { navController.popBackStack() },
                 viewModel = viewModel
             )
