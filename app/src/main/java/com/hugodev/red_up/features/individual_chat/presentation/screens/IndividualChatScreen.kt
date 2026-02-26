@@ -21,14 +21,20 @@ fun IndividualChatScreen(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
 
-    // Unirse a la sala directa
-    LaunchedEffect(userId) {
-        viewModel.joinRoom(
-            roomId = userId,
-            roomName = userName,
-            roomType = "directo"
-        )
+    LaunchedEffect(Unit) {
+        viewModel.connectToChat()
+    }
+
+    LaunchedEffect(isConnected, userId) {
+        if (isConnected) {
+            viewModel.joinRoom(
+                roomId = userId,
+                roomName = userName,
+                roomType = "directo"
+            )
+        }
     }
 
     Scaffold(
@@ -38,7 +44,7 @@ fun IndividualChatScreen(
                     Column {
                         Text(userName)
                         Text(
-                            text = if (uiState.isConnected) "Conectado" else "Conectando...",
+                            text = if (isConnected) "Conectado" else "Conectando...",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
