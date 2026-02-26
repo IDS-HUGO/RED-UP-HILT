@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.rememberNavController
-import com.example.compose.RED_UPTheme
+import com.hugodev.red_up.core.ui.theme.RED_UPTheme
 import com.hugodev.red_up.navigation.NavigationGraph
 import com.hugodev.red_up.navigation.NavigationManager
 import dagger.hilt.android.AndroidEntryPoint

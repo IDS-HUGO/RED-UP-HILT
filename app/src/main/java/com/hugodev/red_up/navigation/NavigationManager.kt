@@ -3,7 +3,6 @@ package com.hugodev.red_up.navigation
 import androidx.navigation.NavController
 import javax.inject.Inject
 import javax.inject.Singleton
-import javax.inject.Inject
 
 interface NavigationManager {
     fun navigate(route: String)
