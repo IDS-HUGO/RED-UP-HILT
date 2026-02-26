@@ -25,6 +25,8 @@ class SocketIoChatRepository @Inject constructor(
     private var socket: Socket? = null
     private val TAG = "SocketIoChatRepository"
 
+    private val roomFlow = MutableSharedFlow<String>(replay = 1)
+
     override fun connect(userId: String) {
         if (socket?.connected() == true) {
             Log.d(TAG, "Already connected")
@@ -75,6 +77,17 @@ class SocketIoChatRepository @Inject constructor(
                 on("ack") { args ->
                     Log.d(TAG, "Message acknowledged: ${args.contentToString()}")
                 }
+
+                on("direct_chat_joined") { args ->
+                    try {
+                        val payload = args.firstOrNull() as? JSONObject ?: return@on
+                        val salaUuid = payload.optString("sala_uuid")
+                        Log.d(TAG, "Direct chat joined with sala_uuid=$salaUuid")
+                        roomFlow.tryEmit(salaUuid)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing direct_chat_joined", e)
+                    }
+                }
                 
                 connect()
             }
@@ -110,4 +123,20 @@ class SocketIoChatRepository @Inject constructor(
     override fun observeMessages(): Flow<ChatMessage> = messagesFlow
 
     override fun observeConnection(): Flow<Boolean> = connectionFlow
+
+    override fun joinDirectChat(otherUserId: String) {
+
+        val payload = JSONObject().apply {
+            put("other_user_id", otherUserId)
+        }
+
+        if (socket?.connected() == true) {
+            Log.d(TAG, "Joining direct chat with user $otherUserId")
+            socket?.emit("join_direct_chat", payload)
+        } else {
+            Log.e(TAG, "Cannot join direct chat: Socket not connected")
+        }
+    }
+
+    override fun observeJoinedRoom(): Flow<String> = roomFlow
 }

@@ -10,6 +10,8 @@ import com.hugodev.red_up.features.chat.domain.usecases.JoinGroupChatUseCase
 import com.hugodev.red_up.features.chat.domain.usecases.ObserveChatConnectionUseCase
 import com.hugodev.red_up.features.chat.domain.usecases.ObserveChatMessagesUseCase
 import com.hugodev.red_up.features.chat.domain.usecases.SendChatMessageUseCase
+import com.hugodev.red_up.features.chat.domain.usecases.JoinDirectChatUseCase
+import com.hugodev.red_up.features.chat.domain.usecases.ObserveJoinedRoomUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -41,7 +43,10 @@ class ChatViewModel @Inject constructor(
     private val sendChatMessageUseCase: SendChatMessageUseCase,
     private val observeChatMessagesUseCase: ObserveChatMessagesUseCase,
     private val observeChatConnectionUseCase: ObserveChatConnectionUseCase,
-    private val authPreferences: AuthPreferences
+    private val authPreferences: AuthPreferences,
+
+    private val joinDirectChatUseCase: JoinDirectChatUseCase,
+    private val observeJoinedRoomUseCase: ObserveJoinedRoomUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -57,6 +62,7 @@ class ChatViewModel @Inject constructor(
     init {
         observeMessages()
         observeConnectionState()
+        observeJoinedRoom()
         initializeUserId()
     }
 
@@ -95,21 +101,34 @@ class ChatViewModel @Inject constructor(
     }
 
     fun joinRoom(roomId: String, roomName: String, roomType: String) {
+
         if (!_uiState.value.isConnected) {
             _uiState.value = _uiState.value.copy(error = "No conectado al servidor")
             return
         }
-        
+
         if (roomType == "grupal") {
             joinGroupChatUseCase(roomId)
+
+            _uiState.value = _uiState.value.copy(
+                currentRoomId = roomId,
+                currentRoomName = roomName,
+                currentRoomType = roomType,
+                messages = emptyList()
+            )
         }
-        
-        _uiState.value = _uiState.value.copy(
-            currentRoomId = roomId,
-            currentRoomName = roomName,
-            currentRoomType = roomType,
-            messages = emptyList() // Limpiar mensajes anteriores
-        )
+
+        if (roomType == "directo") {
+            joinDirectChatUseCase(roomId)
+
+            _uiState.value = _uiState.value.copy(
+                currentRoomName = roomName,
+                currentRoomType = roomType,
+                messages = emptyList()
+            )
+            // ⚠️ NO seteamos currentRoomId aquí
+            // Se setea cuando llegue direct_chat_joined
+        }
     }
 
     fun updateMessage(message: String) {
@@ -153,5 +172,15 @@ class ChatViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         disconnectFromChatUseCase()
+    }
+
+    private fun observeJoinedRoom() {
+        viewModelScope.launch {
+            observeJoinedRoomUseCase().collect { salaUuid ->
+                _uiState.value = _uiState.value.copy(
+                    currentRoomId = salaUuid
+                )
+            }
+        }
     }
 }

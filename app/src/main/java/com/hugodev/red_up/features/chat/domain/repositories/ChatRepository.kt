@@ -10,4 +10,9 @@ interface ChatRepository {
     fun sendMessage(message: ChatMessage)
     fun observeMessages(): Flow<ChatMessage>
     fun observeConnection(): Flow<Boolean>
+
+    fun joinDirectChat(otherUserId: String)
+
+    fun observeJoinedRoom(): Flow<String>
+
 }
