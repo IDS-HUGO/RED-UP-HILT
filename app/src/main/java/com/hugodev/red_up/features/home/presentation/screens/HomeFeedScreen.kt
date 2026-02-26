@@ -13,11 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Mail
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -27,7 +24,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,20 +43,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hugodev.red_up.features.chat.domain.entities.ChatMessage
 import com.hugodev.red_up.features.home.presentation.viewmodels.HomeViewModel
 import com.hugodev.red_up.features.publications.domain.entities.Publications
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
+fun HomeFeedScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToChat: (String, String, String) -> Unit = { _, _, _ -> },
-    onNavigateToGroups: () -> Unit = {},
-    onNavigateToLogin: () -> Unit = {}
+    onNavigateToLogin: () -> Unit = {},
+    onNavigateToGroupChat: (Long, String) -> Unit = { _, _ -> },
+    onNavigateToIndividualChat: (String, String) -> Unit = { _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showMessageDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -88,11 +82,11 @@ fun HomeScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showMessageDialog = true },
+                onClick = { /* Navegar a crear publicación */ },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Icon(Icons.Default.Mail, contentDescription = "Enviar mensaje")
+                Icon(Icons.Default.Add, contentDescription = "Crear publicación")
             }
         }
     ) { padding ->
@@ -135,22 +129,7 @@ fun HomeScreen(
         }
     }
 
-    // Diálogo para elegir tipo de mensaje
-    if (showMessageDialog) {
-        MessageTypeDialog(
-            onDismiss = { showMessageDialog = false },
-            onIndividual = { 
-                showMessageDialog = false
-                onNavigateToChat("direct", "Mensaje directo", "individual")
-            },
-            onGroup = {
-                showMessageDialog = false
-                onNavigateToGroups()
-            }
-        )
-    }
-
-    // Diálogo para confirmar logout
+    // Diálogo de logout
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -173,39 +152,6 @@ fun HomeScreen(
             }
         )
     }
-}
-
-@Composable
-private fun MessageTypeDialog(
-    onDismiss: () -> Unit,
-    onIndividual: () -> Unit,
-    onGroup: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Tipo de Mensaje") },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("¿Qué tipo de mensaje deseas enviar?")
-            }
-        },
-        confirmButton = {
-            Button(onClick = onGroup) {
-                Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.padding(4.dp))
-                Text("Grupal")
-            }
-        },
-        dismissButton = {
-            Button(onClick = onIndividual) {
-                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.padding(4.dp))
-                Text("Individual")
-            }
-        }
-    )
 }
 
 @Composable
