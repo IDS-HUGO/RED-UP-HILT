@@ -68,6 +68,7 @@ secrets {
     propertiesFileName = "local.properties"
     defaultPropertiesFileName = "local.defaults.properties"
     ignoreList.add("sdk.dir")
+    ignoreList.add("org.gradle.java.home")
 }
 
 ksp {
