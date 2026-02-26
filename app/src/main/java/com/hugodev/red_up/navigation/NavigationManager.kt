@@ -1,6 +1,7 @@
 package com.hugodev.red_up.navigation
 
 import androidx.navigation.NavController
+import javax.inject.Inject
 import javax.inject.Singleton
 
 interface NavigationManager {
@@ -14,7 +15,7 @@ interface NavigationManager {
 
 
 @Singleton
-class NavigationManagerImpl : NavigationManager {
+class NavigationManagerImpl @Inject constructor() : NavigationManager {
     
     private var navController: NavController? = null
 
