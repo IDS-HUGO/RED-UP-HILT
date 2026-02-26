@@ -15,8 +15,12 @@ import com.hugodev.red_up.features.chat.presentation.screens.ChatScreen
 import com.hugodev.red_up.features.chat.presentation.viewmodels.ChatViewModel
 import com.hugodev.red_up.features.groups.presentation.screens.CreateGroupScreen
 import com.hugodev.red_up.features.groups.presentation.screens.GroupsListScreen
+import com.hugodev.red_up.features.groups.presentation.screens.GroupDetailScreen
+import com.hugodev.red_up.features.groups.presentation.screens.InviteMembersScreen
 import com.hugodev.red_up.features.groups.presentation.viewmodels.CreateGroupViewModel
 import com.hugodev.red_up.features.groups.presentation.viewmodels.GroupsListViewModel
+import com.hugodev.red_up.features.groups.presentation.viewmodels.GroupDetailViewModel
+import com.hugodev.red_up.features.groups.presentation.viewmodels.InviteMembersViewModel
 import com.hugodev.red_up.features.home.presentation.screens.HomeScreen
 import com.hugodev.red_up.features.publications.presentation.viewmodels.CreatePublicacionViewModel
 import com.hugodev.red_up.features.publications.presentation.viewmodels.PublicacionesListViewModel
@@ -92,7 +96,7 @@ fun NavigationGraph(
                 onBackClick = { navController.popBackStack() },
                 onCreateGroupClick = { navController.navigate(Screen.CreateGroup.route) },
                 onGroupClick = { groupId, groupName ->
-                    navController.navigate(Screen.Chat.createRoute(groupId.toString(), groupName, "grupal"))
+                    navController.navigate(Screen.GroupDetail.createRoute(groupId))
                 },
                 viewModel = viewModel
             )
@@ -104,8 +108,34 @@ fun NavigationGraph(
                 onBackClick = { navController.popBackStack() },
                 onGroupCreated = { groupId, groupName ->
                     navController.popBackStack()
-                    navController.navigate(Screen.Chat.createRoute(groupId.toString(), groupName, "grupal"))
+                    navController.navigate(Screen.GroupDetail.createRoute(groupId))
                 },
+                viewModel = viewModel
+            )
+        }
+
+        composable(Screen.GroupDetail.route) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")?.toLongOrNull() ?: 0L
+            val viewModel: GroupDetailViewModel = hiltViewModel()
+            GroupDetailScreen(
+                groupId = groupId,
+                onBackClick = { navController.popBackStack() },
+                onInviteMembersClick = { gId ->
+                    navController.navigate(Screen.InviteMembers.createRoute(gId))
+                },
+                onChatClick = { gId, groupName ->
+                    navController.navigate(Screen.Chat.createRoute(gId.toString(), groupName, "grupal"))
+                },
+                viewModel = viewModel
+            )
+        }
+
+        composable(Screen.InviteMembers.route) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")?.toLongOrNull() ?: 0L
+            val viewModel: InviteMembersViewModel = hiltViewModel()
+            InviteMembersScreen(
+                groupId = groupId,
+                onBackClick = { navController.popBackStack() },
                 viewModel = viewModel
             )
         }

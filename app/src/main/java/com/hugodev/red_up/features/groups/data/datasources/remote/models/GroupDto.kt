@@ -39,3 +39,18 @@ data class GroupDetailDto(
     @SerializedName("total_miembros") val totalMiembros: Int = 0,
     @SerializedName("miembros") val miembros: List<GroupMemberDto>? = null
 )
+
+data class UserSearchDto(
+    @SerializedName("id") val id: Long,
+    @SerializedName("nombre") val nombre: String,
+    @SerializedName("apellido_paterno") val apellidoPaterno: String,
+    @SerializedName("apellido_materno") val apellidoMaterno: String? = null,
+    @SerializedName("email") val email: String,
+    @SerializedName("foto_perfil_url") val fotoPerfilUrl: String? = null,
+    @SerializedName("carrera_id") val carreraId: Long? = null,
+    @SerializedName("cuatrimestre_id") val cuatrimestreId: Long? = null
+)
+
+data class InviteMemberResponseDto(
+    @SerializedName("message") val message: String
+)

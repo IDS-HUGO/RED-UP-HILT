@@ -18,7 +18,7 @@ class AuthRepositoryImpl @Inject constructor(
             val tokenResponse = authApi.login(
                 AuthLoginRequestDto(
                     correoInstitucional = email,
-                    contrasena = password
+                    password = password
                 )
             )
 
@@ -48,7 +48,7 @@ class AuthRepositoryImpl @Inject constructor(
                     apellidoPaterno = apellidoPaterno,
                     apellidoMaterno = apellidoMaterno,
                     fechaNacimiento = fechaNacimiento,
-                    contrasena = password
+                    password = password
                 )
             )
             user.toDomain()
