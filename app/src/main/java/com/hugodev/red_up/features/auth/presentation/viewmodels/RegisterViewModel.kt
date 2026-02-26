@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.features.auth.domain.usecases.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -78,14 +80,24 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
+        val fechaNormalizada = normalizeFechaNacimiento(state.fechaNacimiento)
+        if (fechaNormalizada == null) {
+            _uiState.value = state.copy(error = "Fecha de nacimiento invalida. Usa YYYY-MM-DD")
+            return
+        }
+
         viewModelScope.launch {
-            _uiState.value = state.copy(isLoading = true, error = null)
+            _uiState.value = state.copy(
+                isLoading = true,
+                error = null,
+                fechaNacimiento = fechaNormalizada
+            )
             registerUseCase(
                 email = state.correo.trim(),
                 nombre = state.nombre.trim(),
                 apellidoPaterno = state.apellidoPaterno.trim(),
                 apellidoMaterno = state.apellidoMaterno.trim().takeIf { it.isNotEmpty() },
-                fechaNacimiento = state.fechaNacimiento.trim(),
+                fechaNacimiento = fechaNormalizada,
                 password = state.password
             ).fold(
                 onSuccess = {
@@ -98,6 +110,25 @@ class RegisterViewModel @Inject constructor(
                     )
                 }
             )
+        }
+    }
+
+    private fun normalizeFechaNacimiento(input: String): String? {
+        val trimmed = input.trim()
+        val digits = trimmed.filter { it.isDigit() }
+        val candidate = if (trimmed.contains("-")) {
+            trimmed
+        } else if (digits.length == 8) {
+            "${digits.substring(0, 4)}-${digits.substring(4, 6)}-${digits.substring(6, 8)}"
+        } else {
+            return null
+        }
+
+        return try {
+            LocalDate.parse(candidate, DateTimeFormatter.ISO_LOCAL_DATE)
+            candidate
+        } catch (ex: Exception) {
+            null
         }
     }
 

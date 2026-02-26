@@ -30,3 +30,14 @@ data class GroupMember(
     val rolMiembro: String,
     val estadoMembresia: String
 )
+
+data class User(
+    val id: Long,
+    val nombre: String,
+    val apellidoPaterno: String,
+    val apellidoMaterno: String?,
+    val email: String,
+    val fotoPerfilUrl: String?,
+    val carreraId: Long?,
+    val cuatrimestreId: Long?
+)

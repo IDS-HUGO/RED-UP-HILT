@@ -5,6 +5,7 @@ import com.hugodev.red_up.features.groups.data.datasources.remote.mapper.toDomai
 import com.hugodev.red_up.features.groups.data.datasources.remote.models.CreateGroupRequestDto
 import com.hugodev.red_up.features.groups.domain.entities.Group
 import com.hugodev.red_up.features.groups.domain.entities.GroupDetail
+import com.hugodev.red_up.features.groups.domain.entities.User
 import com.hugodev.red_up.features.groups.domain.repositories.GroupRepository
 import javax.inject.Inject
 
@@ -52,6 +53,19 @@ class GroupRepositoryImpl @Inject constructor(
         return runCatching {
             val response = groupsApi.joinGroup(groupId)
             response["message"] ?: "Operación exitosa"
+        }
+    }
+
+    override suspend fun searchUsers(query: String): Result<List<User>> {
+        return runCatching {
+            groupsApi.searchUsers(query).map { it.toDomain() }
+        }
+    }
+
+    override suspend fun inviteMember(groupId: Long, userId: Long): Result<String> {
+        return runCatching {
+            val response = groupsApi.inviteMember(groupId, userId)
+            response.message
         }
     }
 }

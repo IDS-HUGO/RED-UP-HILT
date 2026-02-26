@@ -2,6 +2,7 @@ package com.hugodev.red_up.features.groups.domain.repositories
 
 import com.hugodev.red_up.features.groups.domain.entities.Group
 import com.hugodev.red_up.features.groups.domain.entities.GroupDetail
+import com.hugodev.red_up.features.groups.domain.entities.User
 
 interface GroupRepository {
     suspend fun getMyGroups(): Result<List<Group>>
@@ -14,4 +15,6 @@ interface GroupRepository {
         privacidad: String
     ): Result<Group>
     suspend fun joinGroup(groupId: Long): Result<String>
+    suspend fun searchUsers(query: String): Result<List<User>>
+    suspend fun inviteMember(groupId: Long, userId: Long): Result<String>
 }
