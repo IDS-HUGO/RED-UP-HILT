@@ -28,6 +28,8 @@ import com.hugodev.red_up.features.groups_chat.presentation.screens.GroupsChatLi
 import com.hugodev.red_up.features.publications.presentation.screens.CreateEditPublicacionScreen
 import com.hugodev.red_up.features.groups.presentation.screens.GroupsListScreen
 import com.hugodev.red_up.features.groups.presentation.screens.CreateGroupScreen
+import com.hugodev.red_up.features.groups.presentation.screens.GroupDetailScreen
+import com.hugodev.red_up.features.groups.presentation.screens.InviteMembersScreen
 import com.hugodev.red_up.features.chat.presentation.screens.ChatScreen
 import com.hugodev.red_up.navigation.Screen
 
@@ -99,7 +101,9 @@ fun MainScreen(
             composable(Screen.GroupsChat.route) {
                 selectedItem = 1
                 GroupsChatListScreen(
-                    onNavigateToGroupDetail = onNavigateToGroupDetail,
+                    onNavigateToGroupDetail = { groupId ->
+                        navController.navigate(Screen.GroupDetail.createRoute(groupId.toLong()))
+                    },
                     onNavigateToChatScreen = { roomId, roomName, roomType ->
                         navController.navigate(Screen.Chat.createRoute(roomId, roomName, roomType))
                     },
@@ -132,8 +136,8 @@ fun MainScreen(
                 CreateGroupScreen(
                     onBackClick = { navController.popBackStack() },
                     onGroupCreated = { groupId, groupName ->
-                        // Navigate to the newly created group chat
-                        navController.navigate(Screen.Chat.createRoute(groupId.toString(), groupName, "grupal")) {
+                        // Navigate to group detail to add members
+                        navController.navigate(Screen.GroupDetail.createRoute(groupId)) {
                             popUpTo(Screen.GroupsChat.route)
                         }
                     }
@@ -150,6 +154,32 @@ fun MainScreen(
                     roomId = roomId,
                     roomName = roomName,
                     roomType = roomType,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            // Group Detail Screen
+            composable(Screen.GroupDetail.route) { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getString("groupId")?.toLongOrNull() ?: 0L
+                
+                GroupDetailScreen(
+                    groupId = groupId,
+                    onBackClick = { navController.popBackStack() },
+                    onInviteMembersClick = { gId ->
+                        navController.navigate(Screen.InviteMembers.createRoute(gId))
+                    },
+                    onChatClick = { gId, gName ->
+                        navController.navigate(Screen.Chat.createRoute(gId.toString(), gName, "grupal"))
+                    }
+                )
+            }
+
+            // Invite Members Screen
+            composable(Screen.InviteMembers.route) { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getString("groupId")?.toLongOrNull() ?: 0L
+                
+                InviteMembersScreen(
+                    groupId = groupId,
                     onBackClick = { navController.popBackStack() }
                 )
             }

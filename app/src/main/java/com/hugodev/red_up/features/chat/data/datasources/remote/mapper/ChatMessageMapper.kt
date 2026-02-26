@@ -35,9 +35,9 @@ fun ChatMessage.toDto(): ChatMessageDto {
 fun JSONObject.toChatMessage(): ChatMessage {
     return ChatMessage(
         id = optString("mensaje_id", null),
-        to = optString("to"),
+        to = optString("sala_uuid").ifEmpty { optString("to") },  // Priorizar sala_uuid
         message = optString("message"),
-        senderId = optString("sender_id"),
+        senderId = optString("from").ifEmpty { optString("sender_id") },  // Puede venir como 'from' o 'sender_id'
         senderName = optString("sender_name", null),
         timestamp = optString("timestamp"),
         type = optString("type", "directo"),
@@ -48,7 +48,7 @@ fun JSONObject.toChatMessage(): ChatMessage {
 
 fun ChatMessage.toJsonObject(): JSONObject {
     return JSONObject().apply {
-        put("to", to)
+        put("sala_uuid", to)  // 'to' contiene el sala_uuid
         put("message", message)
         put("sender_id", senderId)
         put("timestamp", timestamp)

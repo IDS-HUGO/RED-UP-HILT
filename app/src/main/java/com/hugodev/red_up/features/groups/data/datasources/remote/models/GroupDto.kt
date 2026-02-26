@@ -45,7 +45,7 @@ data class UserSearchDto(
     @SerializedName("nombre") val nombre: String,
     @SerializedName("apellido_paterno") val apellidoPaterno: String,
     @SerializedName("apellido_materno") val apellidoMaterno: String? = null,
-    @SerializedName("email") val email: String,
+    @SerializedName("correo_institucional") val email: String? = null,
     @SerializedName("foto_perfil_url") val fotoPerfilUrl: String? = null,
     @SerializedName("carrera_id") val carreraId: Long? = null,
     @SerializedName("cuatrimestre_id") val cuatrimestreId: Long? = null

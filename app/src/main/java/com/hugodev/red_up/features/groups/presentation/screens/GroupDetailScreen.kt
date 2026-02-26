@@ -57,10 +57,25 @@ fun GroupDetailScreen(
         },
         floatingActionButton = {
             if (uiState.group != null) {
-                FloatingActionButton(
-                    onClick = { onChatClick(groupId, uiState.group!!.nombre) }
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(end = 8.dp, bottom = 8.dp)
                 ) {
-                    Icon(Icons.Default.Chat, contentDescription = "Abrir chat")
+                    if (uiState.canInviteMembers) {
+                        FloatingActionButton(
+                            onClick = { onInviteMembersClick(groupId) },
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        ) {
+                            Icon(Icons.Default.PersonAdd, contentDescription = "Agregar miembros")
+                        }
+                    }
+                    FloatingActionButton(
+                        onClick = { onChatClick(groupId, uiState.group!!.nombre) },
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ) {
+                        Icon(Icons.Default.Chat, contentDescription = "Abrir chat")
+                    }
                 }
             }
         }

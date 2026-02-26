@@ -126,11 +126,7 @@ fun GroupsChatListScreen(
                         descripcion = grupo.descripcion,
                         miembros = grupo.totalMiembros,
                         onClick = {
-                            onNavigateToChatScreen(
-                                grupo.id,
-                                grupo.nombre,
-                                "grupal"
-                            )
+                            onNavigateToGroupDetail(grupo.id)
                         }
                     )
                 }

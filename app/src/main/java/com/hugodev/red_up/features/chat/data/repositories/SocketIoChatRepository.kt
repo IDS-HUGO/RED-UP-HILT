@@ -13,6 +13,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.merge
 import org.json.JSONObject
 
 @Singleton
@@ -26,6 +27,7 @@ class SocketIoChatRepository @Inject constructor(
     private val TAG = "SocketIoChatRepository"
 
     private val roomFlow = MutableSharedFlow<String>(replay = 1)
+    private val groupJoinedFlow = MutableSharedFlow<String>(replay = 1)
 
     override fun connect(userId: String) {
         if (socket?.connected() == true) {
@@ -88,6 +90,18 @@ class SocketIoChatRepository @Inject constructor(
                         Log.e(TAG, "Error parsing direct_chat_joined", e)
                     }
                 }
+
+                on("group_joined") { args ->
+                    try {
+                        val payload = args.firstOrNull() as? JSONObject ?: return@on
+                        val salaUuid = payload.optString("sala_uuid")
+                        val groupId = payload.optString("group_id")
+                        Log.d(TAG, "Group joined: group_id=$groupId, sala_uuid=$salaUuid")
+                        groupJoinedFlow.tryEmit(salaUuid)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing group_joined", e)
+                    }
+                }
                 
                 connect()
             }
@@ -138,5 +152,5 @@ class SocketIoChatRepository @Inject constructor(
         }
     }
 
-    override fun observeJoinedRoom(): Flow<String> = roomFlow
+    override fun observeJoinedRoom(): Flow<String> = merge(roomFlow, groupJoinedFlow)
 }

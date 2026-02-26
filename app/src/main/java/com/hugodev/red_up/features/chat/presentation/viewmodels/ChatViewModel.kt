@@ -68,8 +68,9 @@ class ChatViewModel @Inject constructor(
 
     private fun initializeUserId() {
         viewModelScope.launch {
-            val userId = authPreferences.userIdFlow.firstOrNull()
-            _uiState.value = _uiState.value.copy(currentUserId = userId?.toString())
+            authPreferences.userIdFlow.collect { userId ->
+                _uiState.value = _uiState.value.copy(currentUserId = userId?.toString())
+            }
         }
     }
 
@@ -92,12 +93,14 @@ class ChatViewModel @Inject constructor(
     }
 
     fun connectToChat() {
-        val userId = _uiState.value.currentUserId
-        if (userId.isNullOrBlank()) {
-            _uiState.value = _uiState.value.copy(error = "Usuario no autenticado")
-            return
+        viewModelScope.launch {
+            val userId = authPreferences.userIdFlow.firstOrNull()
+            if (userId == null) {
+                _uiState.value = _uiState.value.copy(error = "Usuario no autenticado")
+                return@launch
+            }
+            connectToChatUseCase(userId.toString())
         }
-        connectToChatUseCase(userId)
     }
 
     fun joinRoom(roomId: String, roomName: String, roomType: String) {
@@ -111,11 +114,12 @@ class ChatViewModel @Inject constructor(
             joinGroupChatUseCase(roomId)
 
             _uiState.value = _uiState.value.copy(
-                currentRoomId = roomId,
                 currentRoomName = roomName,
                 currentRoomType = roomType,
                 messages = emptyList()
             )
+            // ⚠️ NO seteamos currentRoomId aquí para chat grupal
+            // Se setea cuando llegue group_joined con el sala_uuid correcto
         }
 
         if (roomType == "directo") {

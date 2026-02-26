@@ -52,7 +52,7 @@ fun UserSearchDto.toDomain(): User {
         nombre = this.nombre,
         apellidoPaterno = this.apellidoPaterno,
         apellidoMaterno = this.apellidoMaterno,
-        email = this.email,
+        email = this.email ?: "",
         fotoPerfilUrl = this.fotoPerfilUrl,
         carreraId = this.carreraId,
         cuatrimestreId = this.cuatrimestreId
