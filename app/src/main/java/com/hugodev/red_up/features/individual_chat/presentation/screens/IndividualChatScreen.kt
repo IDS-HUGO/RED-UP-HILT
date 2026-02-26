@@ -7,21 +7,42 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hugodev.red_up.features.chat.presentation.viewmodels.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IndividualChatScreen(
     userId: String,
     userName: String,
-    userEmail: String
+    userEmail: String,
+    viewModel: ChatViewModel = hiltViewModel()
 ) {
 
-    var message by remember { mutableStateOf("") }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Unirse a la sala directa
+    LaunchedEffect(userId) {
+        viewModel.joinRoom(
+            roomId = userId,
+            roomName = userName,
+            roomType = "directo"
+        )
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(userName) }
+                title = {
+                    Column {
+                        Text(userName)
+                        Text(
+                            text = if (uiState.isConnected) "Conectado" else "Conectando...",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
             )
         }
     ) { padding ->
@@ -32,32 +53,47 @@ fun IndividualChatScreen(
                 .padding(padding)
         ) {
 
-            // Mensajes (temporalmente fake)
+            // ===============================
+            // LISTA DE MENSAJES REALES
+            // ===============================
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(16.dp)
             ) {
-                items(
-                    listOf(
-                        "Hola 👋",
-                        "¿Cómo estás?",
-                        "Este será el chat real pronto 🔥"
-                    )
-                ) { msg ->
+
+                items(uiState.messages) { message ->
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
                     ) {
-                        Text(
-                            text = msg,
-                            modifier = Modifier.padding(12.dp)
-                        )
+                        Column(modifier = Modifier.padding(12.dp)) {
+
+                            Text(
+                                text = "De: ${message.senderId}"
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                text = message.message
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                text = message.timestamp,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
 
-            // Input mensaje
+            // ===============================
+            // INPUT DE MENSAJE
+            // ===============================
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -65,8 +101,8 @@ fun IndividualChatScreen(
             ) {
 
                 OutlinedTextField(
-                    value = message,
-                    onValueChange = { message = it },
+                    value = uiState.newMessage,
+                    onValueChange = { viewModel.updateMessage(it) },
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Escribe un mensaje...") }
                 )
@@ -75,12 +111,26 @@ fun IndividualChatScreen(
 
                 Button(
                     onClick = {
-                        // Aquí luego conectaremos con ViewModel
-                        message = ""
+                        viewModel.sendMessage()
                     }
                 ) {
                     Text("Enviar")
                 }
+            }
+
+            // ===============================
+            // ERROR SI EXISTE
+            // ===============================
+            uiState.error?.let { error ->
+                LaunchedEffect(error) {
+                    viewModel.clearError()
+                }
+
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
     }
