@@ -130,13 +130,22 @@ fun ChatScreen(
                         isOwnMessage = message.senderId == uiState.currentUserId
                     )
                 }
+                
+                items(uiState.pendingMessages) { message ->
+                    MessageItem(
+                        message = message,
+                        isOwnMessage = message.senderId == uiState.currentUserId,
+                        isPending = true
+                    )
+                }
             }
 
             MessageInput(
                 message = uiState.newMessage,
                 onMessageChange = viewModel::updateMessage,
                 onSendClick = viewModel::sendMessage,
-                enabled = isConnected
+                isConnected = isConnected,
+                isConnectingToRoom = uiState.currentRoomId.isNullOrBlank()
             )
         }
     }
@@ -145,7 +154,8 @@ fun ChatScreen(
 @Composable
 fun MessageItem(
     message: ChatMessage,
-    isOwnMessage: Boolean
+    isOwnMessage: Boolean,
+    isPending: Boolean = false
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -160,7 +170,9 @@ fun MessageItem(
                 bottomEnd = if (isOwnMessage) 4.dp else 16.dp
             ),
             colors = CardDefaults.cardColors(
-                containerColor = if (isOwnMessage) {
+                containerColor = if (isPending) {
+                    MaterialTheme.colorScheme.surfaceVariant
+                } else if (isOwnMessage) {
                     MaterialTheme.colorScheme.primaryContainer
                 } else {
                     MaterialTheme.colorScheme.secondaryContainer
@@ -182,15 +194,32 @@ fun MessageItem(
                 Text(
                     text = message.message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = if (isPending) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
                 )
                 
-                Text(
-                    text = formatTimestamp(message.timestamp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.End)
-                )
+                Row(
+                    modifier = Modifier.align(Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (isPending) {
+                        Text(
+                            text = "Enviando...",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        Text(
+                            text = formatTimestamp(message.timestamp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }
@@ -201,43 +230,59 @@ fun MessageInput(
     message: String,
     onMessageChange: (String) -> Unit,
     onSendClick: () -> Unit,
-    enabled: Boolean
+    isConnected: Boolean,
+    isConnectingToRoom: Boolean = false
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 3.dp
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            OutlinedTextField(
-                value = message,
-                onValueChange = onMessageChange,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Escribe un mensaje...") },
-                enabled = enabled,
-                maxLines = 3,
-                shape = RoundedCornerShape(24.dp)
-            )
-            
-            IconButton(
-                onClick = onSendClick,
-                enabled = enabled && message.isNotBlank()
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Enviar",
-                    tint = if (enabled && message.isNotBlank()) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
+            // Estado de conexión
+            if (!isConnected || isConnectingToRoom) {
+                Text(
+                    text = if (!isConnected) "Conectando..." else "Uniendo a sala...",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(vertical = 4.dp)
                 )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = message,
+                    onValueChange = onMessageChange,
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Escribe un mensaje...") },
+                    maxLines = 3,
+                    shape = RoundedCornerShape(24.dp)
+                )
+                
+                IconButton(
+                    onClick = onSendClick,
+                    enabled = message.isNotBlank()
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Enviar",
+                        tint = if (message.isNotBlank()) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                }
             }
         }
     }
