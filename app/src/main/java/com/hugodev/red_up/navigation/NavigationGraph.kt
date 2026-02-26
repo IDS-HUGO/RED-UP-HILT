@@ -11,6 +11,8 @@ import com.hugodev.red_up.features.auth.presentation.screens.LoginScreen
 import com.hugodev.red_up.features.auth.presentation.screens.RegisterScreen
 import com.hugodev.red_up.features.auth.presentation.viewmodels.LoginViewModel
 import com.hugodev.red_up.features.auth.presentation.viewmodels.RegisterViewModel
+import com.hugodev.red_up.features.groups.presentation.screens.GroupChatScreen
+import com.hugodev.red_up.features.groups.presentation.viewmodels.GroupChatViewModel
 import com.hugodev.red_up.features.home.presentation.screens.HomeScreen
 import com.hugodev.red_up.features.publications.presentation.viewmodels.CreatePublicacionViewModel
 import com.hugodev.red_up.features.publications.presentation.viewmodels.PublicacionesListViewModel
@@ -70,7 +72,23 @@ fun NavigationGraph(
         }
 
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(
+                onNavigateToGroupChat = { groupId, groupName ->
+                    navController.navigate(Screen.GroupChat.createRoute(groupId, groupName))
+                }
+            )
+        }
+
+        composable(Screen.GroupChat.route) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+            val groupName = backStackEntry.arguments?.getString("groupName") ?: ""
+            val viewModel: GroupChatViewModel = hiltViewModel()
+            GroupChatScreen(
+                groupId = groupId,
+                groupName = groupName,
+                onBackClick = { navController.popBackStack() },
+                viewModel = viewModel
+            )
         }
     }
 }

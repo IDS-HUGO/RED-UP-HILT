@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,7 +45,8 @@ import com.hugodev.red_up.features.publications.domain.entities.Publications
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    onNavigateToGroupChat: (String, String) -> Unit = { _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var toUserId by remember { mutableStateOf("") }
@@ -82,7 +85,13 @@ fun HomeScreen(
                     userId = uiState.userId
                 )
             }
+GroupChatQuickAccess(
+                    onNavigateToGroupChat = onNavigateToGroupChat
+                )
+            }
 
+            item {
+                
             item {
                 MessageComposer(
                     toUserId = toUserId,
@@ -118,7 +127,37 @@ fun HomeScreen(
 
             items(uiState.publicaciones) { publication ->
                 PublicationCard(publication)
+            GroupChatQuickAccess(
+    onNavigateToGroupChat: (String, String) -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Chat Grupal",
+                style = MaterialTheme.typography.titleSmall
+            )
+            Text(
+                text = "Únete a un grupo para chatear en tiempo real",
+                style = MaterialTheme.typography.bodySmall
+            )
+            
+            Button(
+                onClick = { onNavigateToGroupChat("grupo_demo", "Grupo Demo") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Groups, contentDescription = null)
+                Spacer(modifier = Modifier.padding(4.dp))
+                Text(text = "Ir a Grupo Demo")
             }
+        }
+    }
+}
+
+@Composable
+private fun }
         }
     }
 }

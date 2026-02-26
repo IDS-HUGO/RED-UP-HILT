@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class AuthLoginRequestDto(
     @SerializedName("correo_institucional") val correoInstitucional: String,
-    @SerializedName("password") val password: String
+    @SerializedName("contrasena") val contrasena: String
 )
 
 data class AuthRegisterRequestDto(
@@ -18,7 +18,7 @@ data class AuthRegisterRequestDto(
     @SerializedName("biografia") val biografia: String? = null,
     @SerializedName("carrera_id") val carreraId: Long? = null,
     @SerializedName("cuatrimestre_id") val cuatrimestreId: Long? = null,
-    @SerializedName("password") val password: String
+    @SerializedName("contrasena") val contrasena: String
 )
 
 data class AuthUserDto(

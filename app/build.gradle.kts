@@ -51,16 +51,16 @@ android {
             dimension = "environment"
             buildConfigField("String", "BASE_URL_RICK", "\"https://rickandmortyapi.com/api/\"")
             buildConfigField("String", "BASE_URL_JSON", "\"https://jsonplaceholder.typicode.com/\"")
-            buildConfigField("String", "BASE_URL_UPRED", "\"http://10.0.2.2:8000/\"")
-            buildConfigField("String", "WS_URL", "\"http://10.0.2.2:5000\"")
-            resValue("string", "app_name", "Demo (DEV)")
+            buildConfigField("String", "BASE_URL_UPRED", "\"https://apiupred.ferluna.online/\"")
+            buildConfigField("String", "WS_URL", "\"https://ws.ferluna.online\"")
+            resValue("string", "app_name", "UPRed (DEV)")
         }
 
         create("prod") {
             dimension = "environment"
-            buildConfigField("String", "BASE_URL_UPRED", "\"http://34.239.246.103:8000/\"")
-            buildConfigField("String", "WS_URL", "\"http://34.239.246.103:5000\"")
-            resValue("string", "app_name", "Demo")
+            buildConfigField("String", "BASE_URL_UPRED", "\"https://apiupred.ferluna.online/\"")
+            buildConfigField("String", "WS_URL", "\"https://ws.ferluna.online\"")
+            resValue("string", "app_name", "UPRed")
         }
     }
 }
