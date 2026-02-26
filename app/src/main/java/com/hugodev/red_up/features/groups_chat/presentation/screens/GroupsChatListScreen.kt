@@ -32,13 +32,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hugodev.red_up.features.groups.presentation.viewmodels.GroupsViewModel
+import com.hugodev.red_up.features.groups_chat.presentation.viewmodels.GroupsChatViewModel
+import com.hugodev.red_up.features.groups_chat.presentation.viewmodels.GroupsUiState
 
 data class GroupChatItem(
-    val id: Long,
+    val id: String,
     val nombre: String,
     val descripcion: String,
-    val miembros: Int,
+    val totalMiembros: Int,
     val ultimoMensaje: String = "",
     val timestamp: String = ""
 )
@@ -46,8 +47,8 @@ data class GroupChatItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupsChatListScreen(
-    viewModel: GroupsViewModel = hiltViewModel(),
-    onNavigateToGroupDetail: (Long) -> Unit = {},
+    viewModel: GroupsChatViewModel = hiltViewModel(),
+    onNavigateToGroupDetail: (String) -> Unit = {},
     onNavigateToChatScreen: (String, String, String) -> Unit = { _, _, _ -> }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -121,11 +122,11 @@ fun GroupsChatListScreen(
                 items(uiState.grupos) { grupo ->
                     GroupChatCard(
                         nombre = grupo.nombre,
-                        descripcion = grupo.descripcion ?: "",
+                        descripcion = grupo.descripcion,
                         miembros = grupo.totalMiembros,
                         onClick = {
                             onNavigateToChatScreen(
-                                grupo.id.toString(),
+                                grupo.id,
                                 grupo.nombre,
                                 "grupal"
                             )

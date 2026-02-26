@@ -27,12 +27,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hugodev.red_up.features.individual_chat.presentation.viewmodels.IndividualChatViewModel
+import com.hugodev.red_up.features.individual_chat.presentation.viewmodels.IndividualChatUiState
 
 data class ChatUser(
     val id: String,
@@ -49,7 +52,7 @@ fun IndividualChatListScreen(
     viewModel: IndividualChatViewModel = hiltViewModel(),
     onNavigateToChatScreen: (String, String, String) -> Unit = { _, _, _ -> }
 ) {
-    val uiState = viewModel.uiState
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -154,14 +157,17 @@ private fun ChatUserCard(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
-                Text(
-                    text = usuario.nombre.first().uppercase(),
+                Column(
                     modifier = Modifier.fillMaxSize(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalAlignment = Alignment.CenterVertically,
-                )
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = usuario.nombre.first().uppercase(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             // Información
