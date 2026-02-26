@@ -25,7 +25,7 @@ interface GroupsApi {
         @Path("grupo_id") groupId: Long
     ): GroupDetailDto
 
-    @POST("api/grupos")
+    @POST("api/grupos/")
     suspend fun createGroup(
         @Body request: CreateGroupRequestDto
     ): GroupDto
