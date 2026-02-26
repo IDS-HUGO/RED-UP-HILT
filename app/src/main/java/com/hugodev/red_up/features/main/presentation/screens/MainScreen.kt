@@ -25,6 +25,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.hugodev.red_up.features.home.presentation.screens.HomeFeedScreen
 import com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatListScreen
 import com.hugodev.red_up.features.groups_chat.presentation.screens.GroupsChatListScreen
+import com.hugodev.red_up.features.publications.presentation.screens.CreateEditPublicacionScreen
+import com.hugodev.red_up.features.groups.presentation.screens.GroupsListScreen
+import com.hugodev.red_up.features.groups.presentation.screens.CreateGroupScreen
+import com.hugodev.red_up.features.chat.presentation.screens.ChatScreen
 import com.hugodev.red_up.navigation.Screen
 
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
@@ -79,8 +83,11 @@ fun MainScreen(
                 selectedItem = 0
                 HomeFeedScreen(
                     onNavigateToLogin = onNavigateToLogin,
+                    onNavigateToCreatePublication = {
+                        navController.navigate(Screen.CreatePublicacion.route)
+                    },
                     onNavigateToGroupChat = { groupId, groupName ->
-                        navController.navigate(Screen.GroupChatScreen.createRoute(groupId.toString(), groupName))
+                        navController.navigate(Screen.Chat.createRoute(groupId.toString(), groupName, "grupal"))
                     },
                     onNavigateToIndividualChat = { userId, userName ->
                         navController.navigate(Screen.IndividualChat.route)
@@ -88,42 +95,63 @@ fun MainScreen(
                 )
             }
 
-            // Groups Chat
+            // Groups Chat List
             composable(Screen.GroupsChat.route) {
                 selectedItem = 1
                 GroupsChatListScreen(
                     onNavigateToGroupDetail = onNavigateToGroupDetail,
-                    onNavigateToChatScreen = onNavigateToChatScreen
+                    onNavigateToChatScreen = { roomId, roomName, roomType ->
+                        navController.navigate(Screen.Chat.createRoute(roomId, roomName, roomType))
+                    },
+                    onNavigateToCreateGroup = {
+                        navController.navigate(Screen.CreateGroup.route)
+                    }
                 )
             }
 
-            // Individual Chat
+            // Individual Chat List
             composable(Screen.IndividualChat.route) {
                 selectedItem = 2
                 IndividualChatListScreen(
-                    onNavigateToChatScreen = onNavigateToChatScreen
+                    onNavigateToChatScreen = { userId, userName, userEmail ->
+                        navController.navigate(Screen.Chat.createRoute(userId, userName, "individual"))
+                    }
                 )
             }
 
-            // Group Chat Screen (nested)
-            composable(Screen.GroupChatScreen.route) { backStackEntry ->
-                val roomId = backStackEntry.arguments?.getString("roomId") ?: ""
-                val roomName = backStackEntry.arguments?.getString("roomName") ?: ""
-                
-                // Aquí iría el ChatScreen para grupos
-                // Por ahora es placeholder
-                Text("Chat Grupal: $roomName")
+            // Create Publication Screen
+            composable(Screen.CreatePublicacion.route) {
+                CreateEditPublicacionScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onSuccess = { navController.popBackStack() }
+                )
             }
 
-            // Individual Chat Screen (nested)
-            composable(Screen.ChatScreen.route) { backStackEntry ->
-                val userId = backStackEntry.arguments?.getString("userId") ?: ""
-                val userName = backStackEntry.arguments?.getString("userName") ?: ""
-                val userEmail = backStackEntry.arguments?.getString("userEmail") ?: ""
+            // Create Group Screen
+            composable(Screen.CreateGroup.route) {
+                CreateGroupScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onGroupCreated = { groupId, groupName ->
+                        // Navigate to the newly created group chat
+                        navController.navigate(Screen.Chat.createRoute(groupId.toString(), groupName, "grupal")) {
+                            popUpTo(Screen.GroupsChat.route)
+                        }
+                    }
+                )
+            }
+
+            // Chat Screen (both group and individual)
+            composable(Screen.Chat.route) { backStackEntry ->
+                val roomId = backStackEntry.arguments?.getString("roomId") ?: ""
+                val roomName = backStackEntry.arguments?.getString("roomName") ?: ""
+                val roomType = backStackEntry.arguments?.getString("roomType") ?: "grupal"
                 
-                // Aquí iría el ChatScreen para individuales
-                // Por ahora es placeholder
-                Text("Chat Individual: $userName")
+                ChatScreen(
+                    roomId = roomId,
+                    roomName = roomName,
+                    roomType = roomType,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }
