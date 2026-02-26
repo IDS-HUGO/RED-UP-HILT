@@ -32,7 +32,8 @@ data class ChatUiState(
     val currentRoomName: String? = null,
     val currentRoomType: String? = null, // "directo" o "grupal"
     val currentUserId: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val pendingMessages: List<ChatMessage> = emptyList()
 )
 
 @HiltViewModel
@@ -51,6 +52,8 @@ class ChatViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+    
+    private val messageQueue = mutableListOf<ChatMessage>()
 
     val isConnected: StateFlow<Boolean> = observeChatConnectionUseCase()
         .stateIn(
@@ -143,10 +146,6 @@ class ChatViewModel @Inject constructor(
         val state = _uiState.value
         
         if (state.newMessage.isBlank()) return
-        if (state.currentRoomId.isNullOrBlank()) {
-            _uiState.value = state.copy(error = "No hay sala activa")
-            return
-        }
         if (state.currentUserId.isNullOrBlank()) {
             _uiState.value = state.copy(error = "Usuario no identificado")
             return
@@ -157,7 +156,7 @@ class ChatViewModel @Inject constructor(
         }
 
         val message = ChatMessage(
-            to = state.currentRoomId,
+            to = state.currentRoomId ?: "temp",
             message = state.newMessage,
             senderId = state.currentUserId,
             timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
@@ -165,8 +164,19 @@ class ChatViewModel @Inject constructor(
             messageType = "texto"
         )
 
-        sendChatMessageUseCase(message)
-        _uiState.value = state.copy(newMessage = "")
+        // Si no hay sala activa aún, encolar el mensaje
+        if (state.currentRoomId.isNullOrBlank()) {
+            messageQueue.add(message)
+            val updatedPending = _uiState.value.pendingMessages + message
+            _uiState.value = state.copy(
+                newMessage = "",
+                pendingMessages = updatedPending
+            )
+        } else {
+            // Enviar inmediatamente si hay sala activa
+            sendChatMessageUseCase(message)
+            _uiState.value = state.copy(newMessage = "")
+        }
     }
 
     fun clearError() {
@@ -184,6 +194,16 @@ class ChatViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     currentRoomId = salaUuid
                 )
+                
+                // Enviar mensajes que estaban pendientes
+                if (messageQueue.isNotEmpty()) {
+                    messageQueue.forEach { message ->
+                        val updatedMessage = message.copy(to = salaUuid)
+                        sendChatMessageUseCase(updatedMessage)
+                    }
+                    messageQueue.clear()
+                    _uiState.value = _uiState.value.copy(pendingMessages = emptyList())
+                }
             }
         }
     }
