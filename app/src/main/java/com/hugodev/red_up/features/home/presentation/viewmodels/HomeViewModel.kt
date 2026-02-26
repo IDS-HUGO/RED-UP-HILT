@@ -87,6 +87,20 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(error = null) }
     }
 
+    fun logout(onNavigateToLogin: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                chatRepository.disconnect()
+                authPreferences.clear()
+                onNavigateToLogin()
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(error = "Error al cerrar sesión: ${e.message}")
+                }
+            }
+        }
+    }
+
     private fun observeUser() {
         viewModelScope.launch {
             authPreferences.userIdFlow.collect { id ->
