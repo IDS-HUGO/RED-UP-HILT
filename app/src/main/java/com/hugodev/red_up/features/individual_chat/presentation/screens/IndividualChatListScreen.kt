@@ -208,21 +208,22 @@ private fun SearchUserDialog(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
+                                        val fullName = "${user.nombre} ${user.apellidoPaterno}".trim()
                                         onUserSelected(
                                             user.id.toString(),
-                                            "${user.nombre} ${user.apellido}",
-                                            user.correo
+                                            fullName,
+                                            user.email
                                         )
                                     }
                             ) {
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Text(
-                                        text = "${user.nombre} ${user.apellido}",
+                                        text = "${user.nombre} ${user.apellidoPaterno}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Text(
-                                        text = user.correo,
+                                        text = user.email,
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }
