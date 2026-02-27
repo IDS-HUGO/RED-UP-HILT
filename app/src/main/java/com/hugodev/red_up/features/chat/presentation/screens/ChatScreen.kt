@@ -6,17 +6,25 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,7 +45,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hugodev.red_up.features.chat.domain.entities.ChatMessage
@@ -84,27 +94,69 @@ fun ChatScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(text = roomName)
-                        Text(
-                            text = if (isConnected) "Conectado" else "Desconectado",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isConnected) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(44.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Default.Groups,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             }
-                        )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = roomName,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.padding(top = 2.dp)
+                            ) {
+                                Surface(
+                                    modifier = Modifier.size(6.dp),
+                                    shape = CircleShape,
+                                    color = if (isConnected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    }
+                                ) {}
+                                Text(
+                                    text = if (isConnected) "Conectado" else "Desconectado",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (isConnected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    }
+                                )
+                            }
+                        }
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
@@ -115,6 +167,7 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
+                .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -158,11 +211,13 @@ fun MessageItem(
     isPending: Boolean = false
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
         horizontalArrangement = if (isOwnMessage) Arrangement.End else Arrangement.Start
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(0.8f),
+            modifier = Modifier.fillMaxWidth(0.85f),
             shape = RoundedCornerShape(
                 topStart = 16.dp,
                 topEnd = 16.dp,
@@ -171,11 +226,11 @@ fun MessageItem(
             ),
             colors = CardDefaults.cardColors(
                 containerColor = if (isPending) {
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
                 } else if (isOwnMessage) {
                     MaterialTheme.colorScheme.primaryContainer
                 } else {
-                    MaterialTheme.colorScheme.secondaryContainer
+                    MaterialTheme.colorScheme.surfaceVariant
                 }
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -185,59 +240,80 @@ fun MessageItem(
             ) {
                 // Mostrar información del remitente
                 if (isOwnMessage) {
-                    // Para mensajes propios, mostrar "(TU)"
-                    Text(
-                        text = "(TÚ)",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                    // Para mensajes propios, mostrar "(TÚ)" con icono
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                } else {
-                    // Para mensajes de otros, mostrar nombre completo y correo
-                    Column {
+                    ) {
                         Text(
-                            text = message.senderName ?: "Usuario Desconocido",
-                            style = MaterialTheme.typography.labelMedium,
+                            text = "TÚ",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        if (!message.senderEmail.isNullOrBlank()) {
-                            Text(
-                                text = message.senderEmail,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                    }
+                } else {
+                    // Para mensajes de otros, mostrar nombre
+                    Text(
+                        text = message.senderName ?: "Usuario Desconocido",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (!message.senderEmail.isNullOrBlank()) {
+                        Text(
+                            text = message.senderEmail,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
                     }
                 }
                 
                 Text(
                     text = message.message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isPending) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                    modifier = Modifier.padding(top = 8.dp)
+                    lineHeight = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(top = if (isOwnMessage) 6.dp else 8.dp)
                 )
                 
                 Row(
-                    modifier = Modifier.align(Alignment.End),
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isPending) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = "Pendiente",
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Text(
                             text = "Enviando...",
                             style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
                         Text(
                             text = formatTimestamp(message.timestamp),
                             style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (isOwnMessage) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Enviado",
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
@@ -256,52 +332,89 @@ fun MessageInput(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp
+        tonalElevation = 8.dp
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
             // Estado de conexión
             if (!isConnected || isConnectingToRoom) {
-                Text(
-                    text = if (!isConnected) "Conectando..." else "Uniendo a sala...",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Row(
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(vertical = 4.dp)
-                )
+                        .fillMaxWidth()
+                        .background(
+                            color = if (!isConnected)
+                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                            else
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier.size(6.dp),
+                        shape = CircleShape,
+                        color = if (!isConnected)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.secondary
+                    ) {}
+                    Text(
+                        text = if (!isConnected) "Conectando..." else "Uniendo a sala...",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (!isConnected)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
                     value = message,
                     onValueChange = onMessageChange,
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Escribe un mensaje...") },
-                    maxLines = 3,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    placeholder = { Text("Escribe algo...") },
+                    maxLines = 2,
+                    textStyle = MaterialTheme.typography.bodyMedium,
                     shape = RoundedCornerShape(24.dp)
                 )
                 
-                IconButton(
-                    onClick = onSendClick,
-                    enabled = message.isNotBlank()
+                Surface(
+                    modifier = Modifier.size(48.dp),
+                    shape = CircleShape,
+                    color = if (message.isNotBlank() && isConnected && !isConnectingToRoom) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    }
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Enviar",
-                        tint = if (message.isNotBlank()) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
+                    IconButton(
+                        onClick = onSendClick,
+                        enabled = message.isNotBlank() && isConnected && !isConnectingToRoom,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Enviar",
+                            tint = if (message.isNotBlank() && isConnected && !isConnectingToRoom) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }
