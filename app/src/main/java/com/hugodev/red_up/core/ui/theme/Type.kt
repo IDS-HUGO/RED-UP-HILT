@@ -18,15 +18,25 @@ val provider = GoogleFont.Provider(
 
 val bodyFontFamily = FontFamily(
     Font(
-        googleFont = GoogleFont("Ubuntu"),
+        googleFont = GoogleFont("Poppins"),
         fontProvider = provider,
+        weight = FontWeight.Normal
     )
 )
 
 val displayFontFamily = FontFamily(
     Font(
-        googleFont = GoogleFont("Aboreto"),
+        googleFont = GoogleFont("Poppins"),
         fontProvider = provider,
+        weight = FontWeight.SemiBold
+    )
+)
+
+val labelFontFamily = FontFamily(
+    Font(
+        googleFont = GoogleFont("Poppins"),
+        fontProvider = provider,
+        weight = FontWeight.Medium
     )
 )
 
@@ -46,8 +56,8 @@ val AppTypography = Typography(
     bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
     bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
     bodySmall = baseline.bodySmall.copy(fontFamily = bodyFontFamily),
-    labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamily),
-    labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamily),
-    labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamily),
+    labelLarge = baseline.labelLarge.copy(fontFamily = labelFontFamily),
+    labelMedium = baseline.labelMedium.copy(fontFamily = labelFontFamily),
+    labelSmall = baseline.labelSmall.copy(fontFamily = labelFontFamily),
 )
 
