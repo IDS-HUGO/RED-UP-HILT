@@ -11,4 +11,13 @@ interface PublicationRepository {
         imagenUrl: String?,
         tipoPublicacion: String
     ): Result<Publications>
+
+    suspend fun deletePublication(id: Long): Result<Unit>
+
+    suspend fun editPublication(
+        id: Long,
+        titulo: String,
+        contenido: String,
+        tipoPublicacion: String
+    ): Result<Publications>
 }

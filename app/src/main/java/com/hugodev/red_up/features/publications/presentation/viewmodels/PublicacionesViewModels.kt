@@ -2,8 +2,11 @@ package com.hugodev.red_up.features.publications.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hugodev.red_up.core.data.AuthPreferences
 import com.hugodev.red_up.features.publications.domain.entities.Publications
 import com.hugodev.red_up.features.publications.domain.usecases.CreatePublicationUseCase
+import com.hugodev.red_up.features.publications.domain.usecases.DeletePublicationUseCase
+import com.hugodev.red_up.features.publications.domain.usecases.EditPublicationUseCase
 import com.hugodev.red_up.features.publications.domain.usecases.GetPublicationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -15,16 +18,34 @@ import kotlinx.coroutines.launch
 data class PublicacionesListUiState(
     val publicaciones: List<Publications> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val publicacionAEditar: Publications? = null,
+    val mostrarDialogoEditar: Boolean = false,
+    val currentUserId: Long? = null
 )
 
 @HiltViewModel
 class PublicacionesListViewModel @Inject constructor(
-    private val getPublicationUseCase: GetPublicationUseCase
+    private val getPublicationUseCase: GetPublicationUseCase,
+    private val deletePublicationUseCase: DeletePublicationUseCase,
+    private val editPublicationUseCase: EditPublicationUseCase,
+    private val authPreferences: AuthPreferences
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PublicacionesListUiState())
     val uiState: StateFlow<PublicacionesListUiState> = _uiState.asStateFlow()
+    
+    init {
+        loadCurrentUser()
+    }
+    
+    private fun loadCurrentUser() {
+        viewModelScope.launch {
+            authPreferences.userIdFlow.collect { userId ->
+                _uiState.value = _uiState.value.copy(currentUserId = userId)
+            }
+        }
+    }
 
     fun loadPublicaciones() {
         if (_uiState.value.isLoading) return
@@ -42,6 +63,63 @@ class PublicacionesListViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = throwable.message ?: "Error al obtener publicaciones"
+                    )
+                }
+            )
+        }
+    }
+
+    fun deletePublicacion(id: Long) {
+        viewModelScope.launch {
+            deletePublicationUseCase(id).fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        publicaciones = _uiState.value.publicaciones.filter { it.id != id }
+                    )
+                },
+                onFailure = { throwable ->
+                    _uiState.value = _uiState.value.copy(
+                        error = throwable.message ?: "Error al eliminar"
+                    )
+                }
+            )
+        }
+    }
+
+    fun mostrarDialogoEditar(publicacion: Publications) {
+        _uiState.value = _uiState.value.copy(
+            publicacionAEditar = publicacion,
+            mostrarDialogoEditar = true
+        )
+    }
+
+    fun ocultarDialogoEditar() {
+        _uiState.value = _uiState.value.copy(
+            publicacionAEditar = null,
+            mostrarDialogoEditar = false
+        )
+    }
+
+    fun editarPublicacion(id: Long, titulo: String, contenido: String) {
+        viewModelScope.launch {
+            editPublicationUseCase(
+                id = id,
+                titulo = titulo,
+                contenido = contenido,
+                tipoPublicacion = "GENERAL"
+            ).fold(
+                onSuccess = { updated ->
+                    _uiState.value = _uiState.value.copy(
+                        publicaciones = _uiState.value.publicaciones.map {
+                            if (it.id == updated.id) updated else it
+                        },
+                        mostrarDialogoEditar = false,
+                        publicacionAEditar = null
+                    )
+                },
+                onFailure = { throwable ->
+                    _uiState.value = _uiState.value.copy(
+                        error = throwable.message ?: "Error al editar"
                     )
                 }
             )

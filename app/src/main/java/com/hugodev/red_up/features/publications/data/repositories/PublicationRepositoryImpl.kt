@@ -33,4 +33,28 @@ class PublicationRepositoryImpl @Inject constructor(
             ).toDomain()
         }
     }
+
+    override suspend fun deletePublication(id: Long): Result<Unit> {
+        return runCatching {
+            upRedApi.deletePublication(id)
+        }
+    }
+
+    override suspend fun editPublication(
+        id: Long,
+        titulo: String,
+        contenido: String,
+        tipoPublicacion: String
+    ): Result<Publications> {
+        return runCatching {
+            upRedApi.editPublication(
+                id = id,
+                request = CreatePublicationRequestDto(
+                    titulo = titulo,
+                    contenido = contenido,
+                    audiencia = if (tipoPublicacion.equals("GENERAL", true)) "general" else "carrera"
+                )
+            ).toDomain()
+        }
+    }
 }
