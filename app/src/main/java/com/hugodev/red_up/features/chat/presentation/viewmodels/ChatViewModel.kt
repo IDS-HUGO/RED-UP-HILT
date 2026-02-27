@@ -90,6 +90,8 @@ class ChatViewModel @Inject constructor(
     private fun observeMessages() {
         viewModelScope.launch {
             observeChatMessagesUseCase().collect { message ->
+                val currentRoomId = _uiState.value.currentRoomId
+                if (currentRoomId.isNullOrBlank() || message.to != currentRoomId) return@collect
                 val currentMessages = _uiState.value.messages.toMutableList()
                 currentMessages.add(message)
                 _uiState.value = _uiState.value.copy(messages = currentMessages)
@@ -115,28 +117,35 @@ class ChatViewModel @Inject constructor(
             return
         }
 
-        if (roomType == "grupal") {
-            joinGroupChatUseCase(roomId)
+        // Usar when en lugar de if-if independientes para evitar que se ejecuten ambos
+        when (roomType) {
+            "grupal" -> {
+                joinGroupChatUseCase(roomId)
 
-            _uiState.value = _uiState.value.copy(
-                currentRoomName = roomName,
-                currentRoomType = roomType,
-                messages = emptyList()
-            )
-            // ⚠️ NO seteamos currentRoomId aquí para chat grupal
-            // Se setea cuando llegue group_joined con el sala_uuid correcto
-        }
+                _uiState.value = _uiState.value.copy(
+                    currentRoomName = roomName,
+                    currentRoomType = roomType,
+                    messages = emptyList()
+                )
+                // ⚠️ NO seteamos currentRoomId aquí para chat grupal
+                // Se setea cuando llegue group_joined con el sala_uuid correcto
+            }
+            "directo" -> {
+                joinDirectChatUseCase(roomId)
 
-        if (roomType == "directo") {
-            joinDirectChatUseCase(roomId)
-
-            _uiState.value = _uiState.value.copy(
-                currentRoomName = roomName,
-                currentRoomType = roomType,
-                messages = emptyList()
-            )
-            // ⚠️ NO seteamos currentRoomId aquí
-            // Se setea cuando llegue direct_chat_joined
+                _uiState.value = _uiState.value.copy(
+                    currentRoomName = roomName,
+                    currentRoomType = roomType,
+                    messages = emptyList()
+                )
+                // ⚠️ NO seteamos currentRoomId aquí
+                // Se setea cuando llegue direct_chat_joined
+            }
+            else -> {
+                _uiState.value = _uiState.value.copy(
+                    error = "Tipo de sala desconocido: $roomType"
+                )
+            }
         }
     }
 
@@ -216,11 +225,41 @@ class ChatViewModel @Inject constructor(
     private fun observeMessageHistory() {
         viewModelScope.launch {
             socketIoChatRepository.observeMessageHistory().collect { historyMessages ->
-                // Insertar los mensajes del historial al inicio de la lista
-                val currentMessages = _uiState.value.messages.toMutableList()
-                currentMessages.addAll(0, historyMessages)
-                _uiState.value = _uiState.value.copy(messages = currentMessages)
+                val currentRoomId = _uiState.value.currentRoomId
+                val historyRoomId = historyMessages.firstOrNull()?.to
+                if (currentRoomId.isNullOrBlank() || historyRoomId.isNullOrBlank()) return@collect
+                if (historyRoomId != currentRoomId) return@collect
+
+                val mergedMessages = mergeHistory(
+                    current = _uiState.value.messages,
+                    history = historyMessages
+                )
+                _uiState.value = _uiState.value.copy(messages = mergedMessages)
             }
         }
+    }
+
+    private fun mergeHistory(
+        current: List<ChatMessage>,
+        history: List<ChatMessage>
+    ): List<ChatMessage> {
+        val seen = HashSet<String>(history.size + current.size)
+        val merged = ArrayList<ChatMessage>(history.size + current.size)
+
+        for (message in history) {
+            val key = messageKey(message)
+            if (seen.add(key)) merged.add(message)
+        }
+
+        for (message in current) {
+            val key = messageKey(message)
+            if (seen.add(key)) merged.add(message)
+        }
+
+        return merged
+    }
+
+    private fun messageKey(message: ChatMessage): String {
+        return message.id ?: "${message.senderId}|${message.timestamp}|${message.message}"
     }
 }

@@ -108,13 +108,17 @@ class SocketIoChatRepository @Inject constructor(
                     try {
                         val payload = args.firstOrNull() as? JSONObject ?: return@on
                         Log.d(TAG, "Message history loaded: ${payload.optInt("message_count")} messages")
-                        
+                        val salaUuid = payload.optString("sala_uuid")
+
                         val messagesArray = payload.optJSONArray("messages") ?: return@on
                         val messagesList = mutableListOf<ChatMessage>()
                         
                         for (i in 0 until messagesArray.length()) {
                             val msgObj = messagesArray.getJSONObject(i)
-                            val message = msgObj.toChatMessage()
+                            var message = msgObj.toChatMessage()
+                            if (message.to.isBlank() && salaUuid.isNotBlank()) {
+                                message = message.copy(to = salaUuid)
+                            }
                             messagesList.add(message)
                         }
                         
@@ -123,10 +127,10 @@ class SocketIoChatRepository @Inject constructor(
                         Log.e(TAG, "Error parsing message_history_loaded", e)
                     }
                 }
-                
+
                 connect()
             }
-            
+
             Log.d(TAG, "Connecting to $socketBaseUrl with user_id=$userId")
         } catch (e: Exception) {
             Log.e(TAG, "Error creating socket", e)
