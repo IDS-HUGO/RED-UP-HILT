@@ -3,8 +3,8 @@ package com.hugodev.red_up.features.main.presentation.screens
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -22,11 +22,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.hugodev.red_up.features.home.presentation.screens.HomeFeedScreen
+import com.hugodev.red_up.features.chat.presentation.screens.ChatsFeatureScreen
+import com.hugodev.red_up.features.grupos.presentation.screens.GruposFeatureScreen
 import com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatListScreen
 import com.hugodev.red_up.features.groups_chat.presentation.screens.GroupsChatListScreen
+import com.hugodev.red_up.features.publicaciones.presentation.screens.PublicacionesFeatureScreen
 import com.hugodev.red_up.features.publications.presentation.screens.CreateEditPublicacionScreen
-import com.hugodev.red_up.features.groups.presentation.screens.GroupsListScreen
 import com.hugodev.red_up.features.groups.presentation.screens.CreateGroupScreen
 import com.hugodev.red_up.features.groups.presentation.screens.GroupDetailScreen
 import com.hugodev.red_up.features.groups.presentation.screens.InviteMembersScreen
@@ -34,17 +35,15 @@ import com.hugodev.red_up.features.chat.presentation.screens.ChatScreen
 import com.hugodev.red_up.navigation.Screen
 
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
-    Home(Screen.HomeFeed.route, "Feed", Icons.Default.Home),
-    GroupsChat(Screen.GroupsChat.route, "Grupos", Icons.Default.People),
-    IndividualChat(Screen.IndividualChat.route, "Mensajes", Icons.Default.Mail)
+    Publicaciones(Screen.HomeFeed.route, "Publicaciones", Icons.Default.Article),
+    Chats(Screen.ChatsHub.route, "Chats", Icons.Default.Forum),
+    Grupos(Screen.GroupsList.route, "Grupos", Icons.Default.People),
 }
 
 @Composable
 fun MainScreen(
     navController: NavHostController = rememberNavController(),
-    onNavigateToLogin: () -> Unit = {},
-    onNavigateToGroupDetail: (String) -> Unit = {},
-    onNavigateToChatScreen: (String, String, String) -> Unit = { _, _, _ -> }
+    onNavigateToLogin: () -> Unit = {}
 ) {
     var selectedItem by remember { mutableStateOf(0) }
     val navItems = BottomNavItem.values()
@@ -83,7 +82,7 @@ fun MainScreen(
             // Home Feed
             composable(Screen.HomeFeed.route) {
                 selectedItem = 0
-                HomeFeedScreen(
+                PublicacionesFeatureScreen(
                     onNavigateToLogin = onNavigateToLogin,
                     onNavigateToCreatePublication = {
                         navController.navigate(Screen.CreatePublicacion.route)
@@ -93,6 +92,18 @@ fun MainScreen(
                     },
                     onNavigateToIndividualChat = { userId, userName ->
                         navController.navigate(Screen.IndividualChat.route)
+                    }
+                )
+            }
+
+            composable(Screen.ChatsHub.route) {
+                selectedItem = 1
+                ChatsFeatureScreen(
+                    onOpenIndividualChats = {
+                        navController.navigate(Screen.IndividualChat.route)
+                    },
+                    onOpenGroupChats = {
+                        navController.navigate(Screen.GroupsChat.route)
                     }
                 )
             }
@@ -107,18 +118,29 @@ fun MainScreen(
                     onNavigateToChatScreen = { roomId, roomName, roomType ->
                         navController.navigate(Screen.Chat.createRoute(roomId, roomName, roomType))
                     },
-                    onNavigateToCreateGroup = {
-                        navController.navigate(Screen.CreateGroup.route)
-                    }
+                    onNavigateToCreateGroup = {},
+                    showCreateGroupButton = false
                 )
             }
 
             // Individual Chat List
             composable(Screen.IndividualChat.route) {
-                selectedItem = 2
+                selectedItem = 1
                 IndividualChatListScreen(
                     onNavigateToChatScreen = { userId, userName, userEmail ->
                         navController.navigate(Screen.Chat.createRoute(userId, userName, "individual"))
+                    }
+                )
+            }
+
+            composable(Screen.GroupsList.route) {
+                selectedItem = 2
+                GruposFeatureScreen(
+                    onNavigateToGroupDetail = { groupId ->
+                        navController.navigate(Screen.GroupDetail.createRoute(groupId))
+                    },
+                    onNavigateToCreateGroup = {
+                        navController.navigate(Screen.CreateGroup.route)
                     }
                 )
             }

@@ -69,7 +69,8 @@ fun GroupsChatListScreen(
     viewModel: GroupsChatViewModel = hiltViewModel(),
     onNavigateToGroupDetail: (String) -> Unit = {},
     onNavigateToChatScreen: (String, String, String) -> Unit = { _, _, _ -> },
-    onNavigateToCreateGroup: () -> Unit = {}
+    onNavigateToCreateGroup: () -> Unit = {},
+    showCreateGroupButton: Boolean = true
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -138,17 +139,19 @@ fun GroupsChatListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToCreateGroup,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape
-            ) {
-                Icon(
-                    Icons.Default.Add, 
-                    contentDescription = "Crear grupo",
-                    modifier = Modifier.size(28.dp)
-                )
+            if (showCreateGroupButton) {
+                FloatingActionButton(
+                    onClick = onNavigateToCreateGroup,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Crear grupo",
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
         }
     ) { padding ->

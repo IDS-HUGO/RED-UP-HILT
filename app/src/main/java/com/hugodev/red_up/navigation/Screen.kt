@@ -10,6 +10,7 @@ sealed class Screen(val route: String) {
     
     // Home Feed (Publicaciones)
     object HomeFeed : Screen("home_feed")
+    object ChatsHub : Screen("chats_hub")
     object CreatePublicacion : Screen("create_publicacion")
     object EditPublicacion : Screen("edit_publicacion/{publicacionId}") {
         fun createRoute(publicacionId: Int) = "edit_publicacion/$publicacionId"
@@ -25,18 +26,11 @@ sealed class Screen(val route: String) {
     object InviteMembers : Screen("invite_members/{groupId}") {
         fun createRoute(groupId: Long) = "invite_members/$groupId"
     }
-    object GroupChatScreen : Screen("group_chat_screen/{roomId}/{roomName}") {
-        fun createRoute(roomId: String, roomName: String) = "group_chat_screen/$roomId/$roomName"
-    }
 
     // Individual Chat
     object IndividualChat : Screen("individual_chat")
-    object ChatScreen : Screen("chat_screen/{userId}/{userName}/{userEmail}") {
-        fun createRoute(userId: String, userName: String, userEmail: String) = 
-            "chat_screen/$userId/$userName/$userEmail"
-    }
-    
-    // Legacy (mantener para compatibilidad)
+
+    // Chat unificado (individual/grupal)
     object Chat : Screen("chat/{roomId}/{roomName}/{roomType}") {
         fun createRoute(roomId: String, roomName: String, roomType: String) = 
             "chat/$roomId/$roomName/$roomType"
