@@ -22,6 +22,9 @@ secretsGradle = "2.0.1"
 hilt = "2.59.1"
 hiltNavigationCompose = "1.3.0"     # Procesador de anotaciones (puedes usar kapt o ksp)
 ksp = "2.2.10-2.0.2"                # Compatible con Kotlin 2.2.10
+room = "2.8.0"
+biometric = "1.4.0-alpha04"
+securityCrypto = "1.1.0-alpha06"
 
 
 [libraries]
@@ -53,6 +56,11 @@ io-socket-socket-io-client = { group = "io.socket", name = "socket.io-client", v
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

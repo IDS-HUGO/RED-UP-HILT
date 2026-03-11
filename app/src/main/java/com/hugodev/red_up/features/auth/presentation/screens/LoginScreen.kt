@@ -1,5 +1,8 @@
 package com.hugodev.red_up.features.auth.presentation.screens
 
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,9 +53,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -63,10 +68,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.foundation.Image
-import androidx.compose.ui.draw.shadow
 import com.hugodev.red_up.R
 import com.hugodev.red_up.features.auth.presentation.viewmodels.LoginViewModel
 
@@ -79,6 +84,15 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val activity = context as? FragmentActivity
+
+    val biometricManager = remember(context) { BiometricManager.from(context) }
+    val canAuthenticateWithFingerprint = remember(biometricManager) {
+        biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+        ) == BiometricManager.BIOMETRIC_SUCCESS
+    }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -267,6 +281,56 @@ fun LoginScreen(
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+
+            if (canAuthenticateWithFingerprint && uiState.hasBiometricCredentials) {
+                Button(
+                    onClick = {
+                        if (activity == null) {
+                            viewModel.clearError()
+                            return@Button
+                        }
+
+                        val executor = ContextCompat.getMainExecutor(activity)
+                        val biometricPrompt = BiometricPrompt(
+                            activity,
+                            executor,
+                            object : BiometricPrompt.AuthenticationCallback() {
+                                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                    viewModel.loginWithBiometric()
+                                }
+
+                                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                                    viewModel.clearError()
+                                }
+                            }
+                        )
+
+                        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                            .setTitle("Acceso con huella")
+                            .setSubtitle("Confirma tu identidad para iniciar sesión")
+                            .setNegativeButtonText("Cancelar")
+                            .build()
+
+                        biometricPrompt.authenticate(promptInfo)
+                    },
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text(
+                        text = "Entrar con huella",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             // Forgot password link
             TextButton(

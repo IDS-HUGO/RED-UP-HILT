@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavGraphBuilder
 import com.hugodev.red_up.features.auth.presentation.screens.LoginScreen
 import com.hugodev.red_up.features.auth.presentation.screens.RegisterScreen
 import com.hugodev.red_up.features.auth.presentation.viewmodels.LoginViewModel
@@ -30,11 +31,13 @@ fun NavigationGraph(
         navController = navController,
         startDestination = startDestination
     ) {
-        // ============================================
-        // AUTENTICACIÓN
-        // ============================================
-        
-        composable(Screen.Login.route) {
+        addAuthGraph(navController)
+        addMainGraph(navController)
+    }
+}
+
+private fun NavGraphBuilder.addAuthGraph(navController: NavHostController) {
+    composable(Screen.Login.route) {
             val viewModel: LoginViewModel = hiltViewModel()
             LoginScreen(
                 onRegisterClick = { navController.navigate(Screen.Register.route) },
@@ -45,9 +48,9 @@ fun NavigationGraph(
                 },
                 viewModel = viewModel
             )
-        }
+    }
 
-        composable(Screen.Register.route) {
+    composable(Screen.Register.route) {
             val viewModel: RegisterViewModel = hiltViewModel()
             RegisterScreen(
                 onBack = { navController.popBackStack() },
@@ -56,54 +59,17 @@ fun NavigationGraph(
                 },
                 viewModel = viewModel
             )
-        }
+    }
+}
 
-        // ============================================
-        // MAIN APP (Con Bottom Navigation)
-        // ============================================
-        
-        composable(Screen.Main.route) {
-            MainScreen(
-                onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Main.route) { inclusive = true }
-                    }
-                },
-                onNavigateToGroupDetail = { groupId ->
-                    // TODO: Navegar a detalle de grupo
-                },
-                onNavigateToChatScreen = { userId, userName, userEmail ->
-
-                    val encodedName = android.net.Uri.encode(userName)
-                    val encodedEmail = android.net.Uri.encode(userEmail)
-
-                    navController.navigate(
-                        Screen.ChatScreen.createRoute(
-                            userId,
-                            encodedName,
-                            encodedEmail
-                        )
-                    )
+private fun NavGraphBuilder.addMainGraph(navController: NavHostController) {
+    composable(Screen.Main.route) {
+        MainScreen(
+            onNavigateToLogin = {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(Screen.Main.route) { inclusive = true }
                 }
-            )
-        }
-
-
-        composable(
-            route = Screen.ChatScreen.route
-        ) { backStackEntry ->
-
-            val userId = backStackEntry.arguments?.getString("userId") ?: ""
-            val userName = backStackEntry.arguments?.getString("userName") ?: ""
-            val userEmail = backStackEntry.arguments?.getString("userEmail") ?: ""
-
-            com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatScreen(
-                userId = userId,
-                userName = userName,
-                userEmail = userEmail
-            )
-        }
-
-
+            }
+        )
     }
 }

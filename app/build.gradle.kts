@@ -103,7 +103,12 @@ dependencies {
     implementation(libs.hilt.android)                               // Implementación de Hilt
     implementation(libs.hilt.navigation.compose)                    // Integración con Jetpack Compose
     implementation(libs.io.socket.socket.io.client)                 // Socket.IO client
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
     ksp(libs.hilt.compiler)                                         // KSP
+    ksp(libs.androidx.room.compiler)
 
 
     testImplementation(libs.junit)
