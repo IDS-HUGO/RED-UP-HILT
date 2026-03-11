@@ -5,6 +5,7 @@ data class Publications(
     val autorId: Long,
     val titulo: String,
     val contenido: String,
+    val imagenUrl: String? = null,
     val audiencia: String,
     val publicadaEn: String,
     val autorNombre: String = "",

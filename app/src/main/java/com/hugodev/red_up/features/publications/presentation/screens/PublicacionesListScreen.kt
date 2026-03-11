@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.hugodev.red_up.features.publications.domain.entities.Publications
 import com.hugodev.red_up.features.publications.presentation.viewmodels.PublicacionesListViewModel
 
@@ -177,8 +179,7 @@ fun PublicacionesListScreen(
                         items(uiState.publicaciones) { publicacion ->
                             PublicacionCard(
                                 publicacion = publicacion,
-                                isOwner = true, // 🔧 TEMPORAL: Forzar a true para testing
-                                // isOwner = publicacion.autorId == currentUserId,
+                                isOwner = publicacion.autorId == currentUserId,
                                 onDeleteClick = { publicacionAEliminar = publicacion },
                                 onEditClick = { viewModel.mostrarDialogoEditar(publicacion) }
                             )
@@ -310,6 +311,19 @@ fun PublicacionCard(
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis
             )
+
+            if (!publicacion.imagenUrl.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(10.dp))
+                AsyncImage(
+                    model = publicacion.imagenUrl,
+                    contentDescription = "Imagen de publicación",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 

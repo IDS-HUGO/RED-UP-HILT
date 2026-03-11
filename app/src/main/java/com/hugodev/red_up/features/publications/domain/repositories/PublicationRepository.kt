@@ -8,7 +8,7 @@ interface PublicationRepository {
     suspend fun createPublication(
         titulo: String,
         contenido: String,
-        imagenUrl: String?,
+        imageBytes: ByteArray?,
         tipoPublicacion: String
     ): Result<Publications>
 

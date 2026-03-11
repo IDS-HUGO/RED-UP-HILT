@@ -1,6 +1,13 @@
 package com.hugodev.red_up.features.publications.presentation.screens
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,15 +50,24 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.hugodev.red_up.features.publications.presentation.viewmodels.CreatePublicacionViewModel
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +78,35 @@ fun CreateEditPublicacionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    val takePhotoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            val imageUri = pendingCameraUri
+            if (imageUri != null) {
+                val bytes = runCatching {
+                    context.contentResolver.openInputStream(imageUri)?.use { it.readBytes() }
+                }.getOrNull()
+
+                if (bytes != null) {
+                    viewModel.onImagenCapturada(imageUri.toString(), bytes)
+                }
+            }
+        }
+    }
+
+    val requestCameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            val imageUri = createTempImageUri(context)
+            pendingCameraUri = imageUri
+            takePhotoLauncher.launch(imageUri)
+        }
+    }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -231,26 +277,61 @@ fun CreateEditPublicacionScreen(
                         )
                     }
 
-                    // Campo URL Imagen
+                    // Captura de imagen con cámara
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "URL de Imagen (Opcional)",
+                            text = "Imagen (Opcional)",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        OutlinedTextField(
-                            value = uiState.imagenUrl,
-                            onValueChange = viewModel::onImagenUrlChange,
-                            placeholder = { Text("https://ejemplo.com/imagen.jpg") },
-                            modifier = Modifier.fillMaxWidth(),
+
+                        Button(
+                            onClick = {
+                                val hasPermission = ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.CAMERA
+                                ) == PackageManager.PERMISSION_GRANTED
+
+                                if (hasPermission) {
+                                    val imageUri = createTempImageUri(context)
+                                    pendingCameraUri = imageUri
+                                    takePhotoLauncher.launch(imageUri)
+                                } else {
+                                    requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
+                            },
                             enabled = !uiState.isLoading,
-                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                             )
-                        )
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CameraAlt,
+                                    contentDescription = null
+                                )
+                                Text("Tomar foto")
+                            }
+                        }
+
+                        uiState.imagenPreviewUri?.let { uriString ->
+                            AsyncImage(
+                                model = uriString,
+                                contentDescription = "Foto para publicación",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
                     }
                 }
             }
@@ -298,4 +379,14 @@ fun CreateEditPublicacionScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+private fun createTempImageUri(context: Context): Uri {
+    val imagesDir = File(context.cacheDir, "images").apply { mkdirs() }
+    val file = File(imagesDir, "pub_${System.currentTimeMillis()}.jpg")
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file
+    )
 }

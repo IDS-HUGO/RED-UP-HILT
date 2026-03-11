@@ -10,13 +10,13 @@ class CreatePublicationUseCase @Inject constructor(
     suspend operator fun invoke(
         titulo: String,
         contenido: String,
-        imagenUrl: String?,
+        imageBytes: ByteArray?,
         tipoPublicacion: String
     ): Result<Publications> {
         return publicationRepository.createPublication(
             titulo = titulo,
             contenido = contenido,
-            imagenUrl = imagenUrl,
+            imageBytes = imageBytes,
             tipoPublicacion = tipoPublicacion
         )
     }

@@ -134,7 +134,7 @@ class PublicacionesListViewModel @Inject constructor(
 data class CreatePublicacionUiState(
     val titulo: String = "",
     val contenido: String = "",
-    val imagenUrl: String = "",
+    val imagenPreviewUri: String? = null,
     val tipoPublicacion: String = "GENERAL",
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -148,6 +148,7 @@ class CreatePublicacionViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CreatePublicacionUiState())
     val uiState: StateFlow<CreatePublicacionUiState> = _uiState.asStateFlow()
+    private var imageBytes: ByteArray? = null
 
     fun onTituloChange(titulo: String) {
         _uiState.value = _uiState.value.copy(titulo = titulo, error = null)
@@ -157,8 +158,9 @@ class CreatePublicacionViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(contenido = contenido, error = null)
     }
 
-    fun onImagenUrlChange(imagenUrl: String) {
-        _uiState.value = _uiState.value.copy(imagenUrl = imagenUrl, error = null)
+    fun onImagenCapturada(previewUri: String, bytes: ByteArray) {
+        imageBytes = bytes
+        _uiState.value = _uiState.value.copy(imagenPreviewUri = previewUri, error = null)
     }
 
     fun onTipoPublicacionChange(tipo: String) {
@@ -181,10 +183,11 @@ class CreatePublicacionViewModel @Inject constructor(
             createPublicationUseCase(
                 titulo = state.titulo,
                 contenido = state.contenido,
-                imagenUrl = state.imagenUrl.takeIf { it.isNotBlank() },
+                imageBytes = imageBytes,
                 tipoPublicacion = state.tipoPublicacion
             ).fold(
                 onSuccess = {
+                    imageBytes = null
                     _uiState.value = CreatePublicacionUiState(isSuccess = true)
                 },
                 onFailure = { throwable ->
