@@ -2,11 +2,12 @@ package com.hugodev.red_up.features.publicaciones.comments.presentation.viewmode
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hugodev.red_up.core.network.ApiService
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import javax.inject.Inject
 
 data class Comment(
     val id: Long,
@@ -30,9 +31,8 @@ data class CommentsUiState(
     val currentPage: Int = 0
 )
 
-class CommentsViewModel(
-    private val apiService: ApiService
-) : ViewModel() {
+@HiltViewModel
+class CommentsViewModel @Inject constructor() : ViewModel() {
 
     private val _commentsState = MutableStateFlow(CommentsUiState())
     val commentsState: StateFlow<CommentsUiState> = _commentsState

@@ -2,12 +2,12 @@ package com.hugodev.red_up.features.profile.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hugodev.red_up.core.network.ApiService
-import com.hugodev.red_up.core.preferences.UserPreferences
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import javax.inject.Inject
 
 data class UserProfile(
     val id: Long,
@@ -40,10 +40,8 @@ data class ProfileUiState(
     val success: String? = null
 )
 
-class ProfileViewModel(
-    private val apiService: ApiService,
-    private val userPreferences: UserPreferences
-) : ViewModel() {
+@HiltViewModel
+class ProfileViewModel @Inject constructor() : ViewModel() {
 
     private val _profileState = MutableStateFlow(ProfileUiState())
     val profileState: StateFlow<ProfileUiState> = _profileState

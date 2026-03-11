@@ -11,6 +11,8 @@ sealed class Screen(val route: String) {
     // Home Feed (Publicaciones)
     object HomeFeed : Screen("home_feed")
     object ChatsHub : Screen("chats_hub")
+    object Profile : Screen("profile")
+    object EditProfile : Screen("edit_profile")
     object CreatePublicacion : Screen("create_publicacion")
     object EditPublicacion : Screen("edit_publicacion/{publicacionId}") {
         fun createRoute(publicacionId: Int) = "edit_publicacion/$publicacionId"

@@ -13,7 +13,10 @@ private fun resolveAbsoluteUrl(url: String?): String? {
 }
 
 fun PublicationDto.toDomain(): Publications {
-    val firstImageUrl = multimedia.firstOrNull { it.tipo.equals("imagen", true) }?.urlArchivo
+    val firstImageUrl = multimedia
+        .orEmpty()
+        .firstOrNull { it.tipo.equals("imagen", true) }
+        ?.urlArchivo
     val normalizedImageUrl = resolveAbsoluteUrl(imagenUrl ?: firstImageUrl)
 
     return Publications(

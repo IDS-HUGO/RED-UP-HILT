@@ -251,6 +251,7 @@ fun CommentItem(
     Divider()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentsScreen(
     publicacionId: Long,

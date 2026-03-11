@@ -24,7 +24,7 @@ data class PublicationDto(
     @SerializedName("audiencia") val audiencia: String,
     @SerializedName("publicada_en") val publicadaEn: String,
     @SerializedName("autor") val autor: PublicationAuthorDto? = null,
-    @SerializedName("multimedia") val multimedia: List<PublicationMediaDto> = emptyList(),
+    @SerializedName("multimedia") val multimedia: List<PublicationMediaDto>? = null,
     @SerializedName("total_reacciones") val totalReacciones: Int = 0,
     @SerializedName("total_comentarios") val totalComentarios: Int = 0
 )

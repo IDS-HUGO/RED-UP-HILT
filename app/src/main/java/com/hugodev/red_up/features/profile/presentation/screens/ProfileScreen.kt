@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.hugodev.red_up.features.profile.presentation.viewmodels.ProfileViewModel
 import com.hugodev.red_up.features.profile.presentation.viewmodels.ProfileUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyProfileScreen(
     viewModel: ProfileViewModel,
@@ -97,6 +98,7 @@ fun MyProfileScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
     userId: Long,

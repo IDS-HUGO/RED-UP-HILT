@@ -61,6 +61,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 import com.hugodev.red_up.R
 import com.hugodev.red_up.features.home.presentation.viewmodels.HomeViewModel
 import com.hugodev.red_up.features.publications.domain.entities.Publications
@@ -374,6 +376,19 @@ private fun PublicationCard(publication: Publications) {
                 lineHeight = 24.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
+
+            if (!publication.imagenUrl.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                AsyncImage(
+                    model = publication.imagenUrl,
+                    contentDescription = "Imagen de publicación",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                        .clip(RoundedCornerShape(14.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
             Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

@@ -12,6 +12,7 @@ import javax.inject.Inject
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.HttpException
 
 class PublicationRepositoryImpl @Inject constructor(
     private val upRedApi: UpRedApi,
@@ -63,6 +64,12 @@ class PublicationRepositoryImpl @Inject constructor(
 
             publicationDao.upsert(created.toEntity())
             created
+        }.recoverCatching { throwable ->
+            if (throwable is HttpException && throwable.code() == 413) {
+                throw IllegalStateException("La imagen es demasiado pesada. Intenta con una foto mas ligera.")
+            }
+
+            throw throwable
         }
     }
 

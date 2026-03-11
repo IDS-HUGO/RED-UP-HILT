@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Forum
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -22,11 +22,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.hugodev.red_up.features.chat.presentation.screens.ChatsFeatureScreen
-import com.hugodev.red_up.features.grupos.presentation.screens.GruposFeatureScreen
 import com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatListScreen
 import com.hugodev.red_up.features.groups_chat.presentation.screens.GroupsChatListScreen
-import com.hugodev.red_up.features.publicaciones.presentation.screens.PublicacionesFeatureScreen
+import com.hugodev.red_up.features.home.presentation.screens.HomeFeedScreen
+import com.hugodev.red_up.features.profile.presentation.screens.EditProfileScreen
+import com.hugodev.red_up.features.profile.presentation.screens.MyProfileScreen
+import com.hugodev.red_up.features.profile.presentation.viewmodels.ProfileViewModel
 import com.hugodev.red_up.features.publications.presentation.screens.CreateEditPublicacionScreen
 import com.hugodev.red_up.features.groups.presentation.screens.CreateGroupScreen
 import com.hugodev.red_up.features.groups.presentation.screens.GroupDetailScreen
@@ -37,7 +40,7 @@ import com.hugodev.red_up.navigation.Screen
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
     Publicaciones(Screen.HomeFeed.route, "Publicaciones", Icons.Default.Article),
     Chats(Screen.ChatsHub.route, "Chats", Icons.Default.Forum),
-    Grupos(Screen.GroupsList.route, "Grupos", Icons.Default.People),
+    Perfil(Screen.Profile.route, "Perfil", Icons.Default.Person),
 }
 
 @Composable
@@ -82,7 +85,7 @@ fun MainScreen(
             // Home Feed
             composable(Screen.HomeFeed.route) {
                 selectedItem = 0
-                PublicacionesFeatureScreen(
+                HomeFeedScreen(
                     onNavigateToLogin = onNavigateToLogin,
                     onNavigateToCreatePublication = {
                         navController.navigate(Screen.CreatePublicacion.route)
@@ -133,15 +136,23 @@ fun MainScreen(
                 )
             }
 
-            composable(Screen.GroupsList.route) {
+            composable(Screen.Profile.route) {
                 selectedItem = 2
-                GruposFeatureScreen(
-                    onNavigateToGroupDetail = { groupId ->
-                        navController.navigate(Screen.GroupDetail.createRoute(groupId))
-                    },
-                    onNavigateToCreateGroup = {
-                        navController.navigate(Screen.CreateGroup.route)
+                val viewModel: ProfileViewModel = hiltViewModel()
+                MyProfileScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = {},
+                    onNavigateToEditProfile = {
+                        navController.navigate(Screen.EditProfile.route)
                     }
+                )
+            }
+
+            composable(Screen.EditProfile.route) {
+                val viewModel: ProfileViewModel = hiltViewModel()
+                EditProfileScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 
