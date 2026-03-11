@@ -40,7 +40,7 @@ fun CommentsBottomSheetContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Header
         Row(
@@ -268,7 +268,7 @@ fun CommentsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // Header
         TopAppBar(

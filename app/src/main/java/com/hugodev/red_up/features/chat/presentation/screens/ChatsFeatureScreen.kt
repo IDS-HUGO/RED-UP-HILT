@@ -40,7 +40,5 @@ fun ChatsFeatureScreen(
             Spacer(modifier = Modifier.padding(horizontal = 4.dp))
             Text("Chat grupal")
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = "Feature de chats con flujos individual y grupal.")
     }
 }
