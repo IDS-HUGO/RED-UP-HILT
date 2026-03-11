@@ -46,14 +46,15 @@ La visión considera una solución factible sobre arquitectura Android moderna (
 
 ### I.1.3 Funcionalidades principales
 
-1. Registro e inicio de sesión de usuarios.
-2. Feed de publicaciones con visualización y creación de contenido.
-3. Gestión y visualización de grupos de chat.
-4. Chat individual entre usuarios.
-5. Chat grupal por sala.
-6. Búsqueda de usuarios para iniciar conversaciones.
-7. Indicadores en tiempo real (usuarios en línea y “escribiendo…”).
-8. Cierre de sesión y control de acceso por autenticación.
+1. Registro e inicio de sesión de usuarios (correo/contraseña y biometría).
+2. Feed de publicaciones con visualización, imagen, creación, edición y eliminación de contenido.
+3. Comentarios en publicaciones: crear, listar y eliminar.
+4. Perfil de usuario con datos reales, estadísticas y edición de biografía/teléfono.
+5. Chat individual entre usuarios con historial e indicadores en tiempo real.
+6. Chat grupal por sala con historial e indicadores en tiempo real.
+7. Búsqueda de usuarios para iniciar conversaciones.
+8. Indicadores en tiempo real (usuarios en línea y “escribiendo…”).
+9. Cierre de sesión y control de acceso por autenticación JWT.
 
 ## I.2.2 Limitaciones y exclusiones
 
@@ -61,6 +62,7 @@ Para esta versión del producto, se excluyen o limitan las siguientes capacidade
 
 - Notificaciones push completas (en desarrollo).
 - Intercambio multimedia avanzado en chats (en desarrollo).
+- Cambio de foto de perfil desde la app (solo URL externa).
 - Moderación avanzada de contenido (reportes, sanciones, panel administrativo).
 - Analítica avanzada de uso y tableros de gestión.
 - Soporte multiplataforma nativo fuera de Android.
@@ -111,10 +113,11 @@ Los procesos de negocio principales identificados para RED-UP son:
 #### PN02. Gestión de publicaciones
 
 | Prioridad | Como | Necesito | Para | Estimación (hrs) |
-|---|---|---|---|---|
-| 01 | Estudiante | Ver un feed de publicaciones | Mantenerme informado de novedades universitarias | 4 |
-| 02 | Estudiante | Crear publicaciones | Compartir información con la comunidad | 5 |
+|---|---|---|---|-|
+| 01 | Estudiante | Ver un feed de publicaciones con imágenes | Mantenerme informado de novedades universitarias | 4 |
+| 02 | Estudiante | Crear publicaciones con imagen opcional | Compartir información con la comunidad | 5 |
 | 03 | Autor de publicación | Editar/eliminar mi publicación | Corregir o retirar contenido cuando sea necesario | 5 |
+| 04 | Estudiante | Ver y agregar comentarios en publicaciones | Interactuar y dar retroalimentación | 4 |
 
 #### PN03. Gestión de chats individuales
 
@@ -138,44 +141,46 @@ Los procesos de negocio principales identificados para RED-UP son:
 
 La evolución del sistema se plantea en incrementos funcionales.
 
-#### MVP 01. Objetivo: Acceso y base social inicial
+#### MVP 01. Objetivo: Acceso y base social inicial  **[Completado]**
 
 **Lista de funcionalidades esperadas**
 
 - Registro de usuario.
-- Inicio de sesión.
+- Inicio de sesión con correo/contraseña.
+- Inicio de sesión biométrico (huella digital).
 - Cierre de sesión.
-- Navegación principal de la aplicación.
+- Navegación principal de la aplicación (barra inferior: Publicaciones / Chats / Perfil).
 
-#### MVP 02. Objetivo: Comunidad y contenido
+#### MVP 02. Objetivo: Comunidad y contenido  **[Completado]**
 
 **Lista de funcionalidades esperadas**
 
-- Visualización de feed.
-- Creación de publicaciones.
+- Visualización de feed con imágenes.
+- Creación de publicaciones con imagen opcional.
 - Edición/eliminación de publicaciones propias.
-- Listado inicial de grupos.
+- Comentarios en publicaciones (crear, listar, eliminar).
+- Perfil de usuario con datos reales, estadísticas y edición de biografía/teléfono.
 
-#### MVP 03. Objetivo: Comunicación en tiempo real
+#### MVP 03. Objetivo: Comunicación en tiempo real  **[Completado]**
 
 **Lista de funcionalidades esperadas**
 
-- Chat individual funcional.
-- Chat grupal funcional.
+- Chat individual funcional con historial.
+- Chat grupal funcional con historial.
 - Búsqueda de usuarios para iniciar conversación.
-- Indicadores de presencia y escritura.
+- Indicadores de presencia y escritura en tiempo real.
 
-#### MVP 04. Objetivo: Consolidación colaborativa
+#### MVP 04. Objetivo: Consolidación y mejoras  **[Pendiente]**
 
 **Lista de funcionalidades esperadas**
 
-- Creación de grupos desde app.
-- Vista de detalle de grupo.
-- Invitación de miembros.
-- Mejoras de estabilidad y manejo de estados de red.
+- Notificaciones push.
+- Cambio de foto de perfil desde la app.
+- Moderación básica de contenido (reportar publicaciones).
+- Mejoras de estabilidad, optimización de rendimiento y soporte offline parcial.
 
 ---
 
 ## Nota de trazabilidad con el proyecto
 
-Este documento se construye en función del estado actual del repositorio RED-UP (Android), donde se observan módulos de autenticación, publicaciones, chat individual, chat grupal, navegación centralizada por rutas y dependencias de red/almacenamiento local para soporte operativo.
+Este documento se construye en función del estado actual del repositorio RED-UP (Android) y su backend API_UPRed. Los MVP 01, 02 y 03 se han completado satisfactoriamente: autenticación con biometría, feed de publicaciones con imagen y comentarios funcionales, perfil con datos reales desde la API, y comunicación en tiempo real por WebSocket. La navegación inferior simplificada a tres secciones (Publicaciones, Chats, Perfil) refleja las funcionalidades disponibles y validadas en el producto.
