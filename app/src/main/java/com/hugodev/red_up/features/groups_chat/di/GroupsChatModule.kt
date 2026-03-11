@@ -8,7 +8,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 object GroupsChatModule {
     
-    // TODO: Agregar dependencias para Groups Chat
+    // Aquí iran las dependencias para Groups Chat
     // - Repositorio de chats grupales
     // - Use cases
     // - Data sources
