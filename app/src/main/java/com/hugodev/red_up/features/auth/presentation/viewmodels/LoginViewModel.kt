@@ -2,6 +2,7 @@ package com.hugodev.red_up.features.auth.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hugodev.red_up.core.security.BiometricCredentialStore
 import com.hugodev.red_up.features.auth.domain.usecases.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 data class LoginUiState(
     val email: String = "",
     val password: String = "",
+    val hasBiometricCredentials: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     val isSuccess: Boolean = false
@@ -20,10 +22,13 @@ data class LoginUiState(
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val biometricCredentialStore: BiometricCredentialStore
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LoginUiState())
+    private val _uiState = MutableStateFlow(
+        LoginUiState(hasBiometricCredentials = biometricCredentialStore.hasCredentials())
+    )
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(value: String) {
@@ -41,11 +46,50 @@ class LoginViewModel @Inject constructor(
             return
         }
 
+        loginInternal(
+            email = state.email.trim(),
+            password = state.password,
+            saveForBiometric = true
+        )
+    }
+
+    fun loginWithBiometric() {
+        val credentials = biometricCredentialStore.getCredentials()
+        if (credentials == null) {
+            _uiState.value = _uiState.value.copy(
+                error = "No hay credenciales guardadas para huella",
+                hasBiometricCredentials = false
+            )
+            return
+        }
+
+        loginInternal(
+            email = credentials.first,
+            password = credentials.second,
+            saveForBiometric = false
+        )
+    }
+
+    private fun loginInternal(
+        email: String,
+        password: String,
+        saveForBiometric: Boolean
+    ) {
+        val state = _uiState.value
         viewModelScope.launch {
             _uiState.value = state.copy(isLoading = true, error = null)
-            loginUseCase(state.email.trim(), state.password).fold(
+            loginUseCase(email, password).fold(
                 onSuccess = {
-                    _uiState.value = state.copy(isLoading = false, isSuccess = true)
+                    if (saveForBiometric) {
+                        biometricCredentialStore.saveCredentials(email, password)
+                    }
+                    _uiState.value = state.copy(
+                        email = email,
+                        password = password,
+                        isLoading = false,
+                        isSuccess = true,
+                        hasBiometricCredentials = true
+                    )
                 },
                 onFailure = { throwable ->
                     _uiState.value = state.copy(
