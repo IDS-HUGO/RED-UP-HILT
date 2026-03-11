@@ -71,7 +71,7 @@ fun CommentsBottomSheetContent(
             items(state.comentarios) { comentario ->
                 CommentItem(
                     comment = comentario,
-                    onDelete = { viewModel.deleteComment(comentario.id) }
+                    onDelete = { viewModel.deleteComment(publicacionId, comentario.id) }
                 )
             }
 
@@ -289,7 +289,7 @@ fun CommentsScreen(
             items(state.comentarios) { comentario ->
                 CommentItem(
                     comment = comentario,
-                    onDelete = { viewModel.deleteComment(comentario.id) }
+                    onDelete = { viewModel.deleteComment(publicacionId, comentario.id) }
                 )
             }
 

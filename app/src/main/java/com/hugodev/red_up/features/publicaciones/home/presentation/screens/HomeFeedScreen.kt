@@ -74,7 +74,8 @@ fun HomeFeedScreen(
     onNavigateToLogin: () -> Unit = {},
     onNavigateToCreatePublication: () -> Unit = {},
     onNavigateToGroupChat: (Long, String) -> Unit = { _, _ -> },
-    onNavigateToIndividualChat: (String, String) -> Unit = { _, _ -> }
+    onNavigateToIndividualChat: (String, String) -> Unit = { _, _ -> },
+    onNavigateToComments: (Long) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -226,7 +227,10 @@ fun HomeFeedScreen(
                 }
 
                 items(uiState.publicaciones) { publication ->
-                    PublicationCard(publication)
+                    PublicationCard(
+                        publication = publication,
+                        onCommentsClick = { onNavigateToComments(publication.id) }
+                    )
                 }
             }
         }
@@ -302,7 +306,10 @@ private fun EmptyStateCard() {
 }
 
 @Composable
-private fun PublicationCard(publication: Publications) {
+private fun PublicationCard(
+    publication: Publications,
+    onCommentsClick: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -429,7 +436,8 @@ private fun PublicationCard(publication: Publications) {
                 // Comentarios
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                    onClick = onCommentsClick
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

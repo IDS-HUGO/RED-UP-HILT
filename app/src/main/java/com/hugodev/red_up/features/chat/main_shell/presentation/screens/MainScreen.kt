@@ -27,6 +27,8 @@ import com.hugodev.red_up.features.chat.presentation.screens.ChatsFeatureScreen
 import com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatListScreen
 import com.hugodev.red_up.features.groups_chat.presentation.screens.GroupsChatListScreen
 import com.hugodev.red_up.features.home.presentation.screens.HomeFeedScreen
+import com.hugodev.red_up.features.publicaciones.comments.presentation.screens.CommentsScreen
+import com.hugodev.red_up.features.publicaciones.comments.presentation.viewmodels.CommentsViewModel
 import com.hugodev.red_up.features.profile.presentation.screens.EditProfileScreen
 import com.hugodev.red_up.features.profile.presentation.screens.MyProfileScreen
 import com.hugodev.red_up.features.profile.presentation.viewmodels.ProfileViewModel
@@ -95,6 +97,9 @@ fun MainScreen(
                     },
                     onNavigateToIndividualChat = { userId, userName ->
                         navController.navigate(Screen.IndividualChat.route)
+                    },
+                    onNavigateToComments = { publicacionId ->
+                        navController.navigate(Screen.Comments.createRoute(publicacionId))
                     }
                 )
             }
@@ -161,6 +166,16 @@ fun MainScreen(
                 CreateEditPublicacionScreen(
                     onBackClick = { navController.popBackStack() },
                     onSuccess = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Comments.route) { backStackEntry ->
+                val publicacionId = backStackEntry.arguments?.getString("publicacionId")?.toLongOrNull() ?: 0L
+                val viewModel: CommentsViewModel = hiltViewModel()
+                CommentsScreen(
+                    publicacionId = publicacionId,
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

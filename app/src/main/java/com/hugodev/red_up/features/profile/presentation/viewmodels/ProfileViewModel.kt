@@ -1,13 +1,15 @@
 package com.hugodev.red_up.features.profile.presentation.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hugodev.red_up.features.publications.data.datasources.remote.api.UpRedApi
+import com.hugodev.red_up.features.publications.data.datasources.remote.models.UpdateProfileRequestDto
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import android.util.Log
-import javax.inject.Inject
 
 data class UserProfile(
     val id: Long,
@@ -41,30 +43,39 @@ data class ProfileUiState(
 )
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor() : ViewModel() {
+class ProfileViewModel @Inject constructor(
+    private val upRedApi: UpRedApi
+) : ViewModel() {
 
     private val _profileState = MutableStateFlow(ProfileUiState())
     val profileState: StateFlow<ProfileUiState> = _profileState
 
     fun loadCurrentUserProfile() {
         viewModelScope.launch {
-            _profileState.value = _profileState.value.copy(isLoading = true)
+            _profileState.value = _profileState.value.copy(isLoading = true, error = null)
             try {
-                // TODO: Implementar llamada a API
-                // val response = apiService.getMyProfile()
-                // Simulación por ahora
+                val profile = upRedApi.getCurrentProfile()
+                val stats = upRedApi.getUserStats(profile.id)
+
                 _profileState.value = _profileState.value.copy(
                     userProfile = UserProfile(
-                        id = 1,
-                        nombre = "Hugo",
-                        apellidoPaterno = "Dev",
-                        apellidoMaterno = "Online",
-                        correoInstitucional = "hugo@Universidad.edu",
-                        fotoPerfil = null,
-                        biografia = "Desarrollador móvil",
-                        telefono = "1234567890",
-                        carrera = "Ingeniería Informática",
-                        cuatrimestre = 5
+                        id = profile.id,
+                        nombre = profile.nombre,
+                        apellidoPaterno = profile.apellidoPaterno,
+                        apellidoMaterno = profile.apellidoMaterno.orEmpty(),
+                        correoInstitucional = profile.correoInstitucional,
+                        fotoPerfil = profile.fotoPerfilUrl,
+                        biografia = profile.biografia,
+                        telefono = profile.telefono,
+                        carrera = profile.carrera?.nombre,
+                        cuatrimestre = profile.cuatrimestre?.numero
+                    ),
+                    userStats = UserStats(
+                        totalSeguidores = stats.totalSeguidores,
+                        totalSiguiendo = stats.totalSiguiendo,
+                        totalPublicaciones = stats.totalPublicaciones,
+                        totalComentarios = stats.totalComentarios,
+                        totalReacciones = stats.totalReacciones
                     ),
                     esMismoUsuario = true,
                     isLoading = false
@@ -81,10 +92,19 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
 
     fun loadUserProfile(userId: Long) {
         viewModelScope.launch {
-            _profileState.value = _profileState.value.copy(isLoading = true)
+            _profileState.value = _profileState.value.copy(isLoading = true, error = null)
             try {
-                // TODO: Implementar llamada a API para obtener perfil completo
-                _profileState.value = _profileState.value.copy(isLoading = false)
+                val stats = upRedApi.getUserStats(userId)
+                _profileState.value = _profileState.value.copy(
+                    userStats = UserStats(
+                        totalSeguidores = stats.totalSeguidores,
+                        totalSiguiendo = stats.totalSiguiendo,
+                        totalPublicaciones = stats.totalPublicaciones,
+                        totalComentarios = stats.totalComentarios,
+                        totalReacciones = stats.totalReacciones
+                    ),
+                    isLoading = false
+                )
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error loading user profile", e)
                 _profileState.value = _profileState.value.copy(
@@ -98,14 +118,14 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
     fun loadUserStats(userId: Long) {
         viewModelScope.launch {
             try {
-                // TODO: Implementar llamada a API
+                val stats = upRedApi.getUserStats(userId)
                 _profileState.value = _profileState.value.copy(
                     userStats = UserStats(
-                        totalSeguidores = 15,
-                        totalSiguiendo = 20,
-                        totalPublicaciones = 5,
-                        totalComentarios = 12,
-                        totalReacciones = 45
+                        totalSeguidores = stats.totalSeguidores,
+                        totalSiguiendo = stats.totalSiguiendo,
+                        totalPublicaciones = stats.totalPublicaciones,
+                        totalComentarios = stats.totalComentarios,
+                        totalReacciones = stats.totalReacciones
                     )
                 )
             } catch (e: Exception) {
@@ -120,15 +140,16 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
     fun followUser(userId: Long) {
         viewModelScope.launch {
             try {
-                // TODO: Implementar llamada POST a /api/usuarios/{userId}/seguir
+                val response = upRedApi.followUser(userId)
                 _profileState.value = _profileState.value.copy(
                     yaSegue = true,
-                    success = "Ahora sigues a este usuario"
+                    success = response.message
                 )
+                loadUserStats(userId)
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error following user", e)
                 _profileState.value = _profileState.value.copy(
-                    error = "Error al seguir usuario"
+                    error = "Error al seguir usuario: ${e.message}"
                 )
             }
         }
@@ -137,15 +158,16 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
     fun unfollowUser(userId: Long) {
         viewModelScope.launch {
             try {
-                // TODO: Implementar llamada DELETE a /api/usuarios/{userId}/seguir
+                val response = upRedApi.unfollowUser(userId)
                 _profileState.value = _profileState.value.copy(
                     yaSegue = false,
-                    success = "Has dejado de seguir a este usuario"
+                    success = response.message
                 )
+                loadUserStats(userId)
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error unfollowing user", e)
                 _profileState.value = _profileState.value.copy(
-                    error = "Error al dejar de seguir usuario"
+                    error = "Error al dejar de seguir usuario: ${e.message}"
                 )
             }
         }
@@ -155,18 +177,27 @@ class ProfileViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             _profileState.value = _profileState.value.copy(isLoading = true)
             try {
-                // TODO: Implementar llamada PUT a /api/usuarios/perfil/actualizar
-                val currentProfile = _profileState.value.userProfile
-                if (currentProfile != null) {
-                    _profileState.value = _profileState.value.copy(
-                        userProfile = currentProfile.copy(
-                            biografia = biography,
-                            telefono = telefono
-                        ),
-                        success = "Perfil actualizado correctamente",
-                        isLoading = false
+                val updated = upRedApi.updateCurrentProfile(
+                    UpdateProfileRequestDto(
+                        biografia = biography,
+                        telefono = telefono
                     )
-                }
+                )
+                _profileState.value = _profileState.value.copy(
+                    userProfile = _profileState.value.userProfile?.copy(
+                        nombre = updated.nombre,
+                        apellidoPaterno = updated.apellidoPaterno,
+                        apellidoMaterno = updated.apellidoMaterno.orEmpty(),
+                        correoInstitucional = updated.correoInstitucional,
+                        biografia = updated.biografia,
+                        telefono = updated.telefono,
+                        carrera = updated.carrera?.nombre,
+                        cuatrimestre = updated.cuatrimestre?.numero,
+                        fotoPerfil = updated.fotoPerfilUrl
+                    ),
+                    success = "Perfil actualizado correctamente",
+                    isLoading = false
+                )
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error updating profile", e)
                 _profileState.value = _profileState.value.copy(

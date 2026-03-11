@@ -32,40 +32,33 @@ data class CommentsUiState(
 )
 
 @HiltViewModel
-class CommentsViewModel @Inject constructor() : ViewModel() {
+class CommentsViewModel @Inject constructor(
+    private val upRedApi: com.hugodev.red_up.features.publications.data.datasources.remote.api.UpRedApi
+) : ViewModel() {
 
     private val _commentsState = MutableStateFlow(CommentsUiState())
     val commentsState: StateFlow<CommentsUiState> = _commentsState
 
     fun loadComments(publicacionId: Long, page: Int = 0) {
         viewModelScope.launch {
-            _commentsState.value = _commentsState.value.copy(isLoading = true)
+            _commentsState.value = _commentsState.value.copy(isLoading = true, error = null)
             try {
-                // TODO: Implementar llamada a GET /api/comentarios/publicaciones/{publicacionId}
-                // val response = apiService.getComments(publicacionId, skip = page * 20, limit = 20)
-                // Simulación por ahora
+                val response = upRedApi.getComments(publicacionId, skip = page * 20, limit = 20)
+                val mapped = response.map { dto ->
+                    Comment(
+                        id = dto.id,
+                        contenido = dto.contenido,
+                        usuarioId = dto.usuarioId,
+                        usuarioNombre = dto.usuario?.nombre.orEmpty(),
+                        usuarioApellido = listOfNotNull(dto.usuario?.apellidoPaterno, dto.usuario?.apellidoMaterno)
+                            .joinToString(" "),
+                        usuarioFoto = dto.usuario?.fotoPerfilUrl,
+                        creadoEn = dto.creadoEn
+                    )
+                }
                 _commentsState.value = _commentsState.value.copy(
-                    comentarios = listOf(
-                        Comment(
-                            id = 1,
-                            contenido = "¡Excelente publicación!",
-                            usuarioId = 2,
-                            usuarioNombre = "Juan",
-                            usuarioApellido = "Pérez",
-                            usuarioFoto = null,
-                            creadoEn = "Hace 2 horas"
-                        ),
-                        Comment(
-                            id = 2,
-                            contenido = "Me encanta este contenido",
-                            usuarioId = 3,
-                            usuarioNombre = "Maria",
-                            usuarioApellido = "García",
-                            usuarioFoto = null,
-                            creadoEn = "Hace 1 hora"
-                        )
-                    ),
-                    totalComentarios = 2,
+                    comentarios = mapped,
+                    totalComentarios = mapped.size,
                     currentPage = page,
                     isLoading = false
                 )
@@ -81,86 +74,44 @@ class CommentsViewModel @Inject constructor() : ViewModel() {
 
     fun addComment(publicacionId: Long, contenido: String) {
         viewModelScope.launch {
-            _commentsState.value = _commentsState.value.copy(estaEscribiendo = true)
+            _commentsState.value = _commentsState.value.copy(estaEscribiendo = true, error = null)
             try {
-                // TODO: Implementar llamada POST a /api/comentarios/publicaciones/{publicacionId}
-                val nuevoComentario = Comment(
-                    id = System.currentTimeMillis(),
-                    contenido = contenido,
-                    usuarioId = 1,
-                    usuarioNombre = "Tu Nombre",
-                    usuarioApellido = "Tu Apellido",
-                    usuarioFoto = null,
-                    creadoEn = "Ahora"
+                upRedApi.addComment(
+                    publicacionId = publicacionId,
+                    request = com.hugodev.red_up.features.publications.data.datasources.remote.models.CreateCommentRequestDto(
+                        publicacionId = publicacionId,
+                        contenido = contenido
+                    )
                 )
 
-                val nuevaLista = listOf(nuevoComentario) + _commentsState.value.comentarios
+                loadComments(publicacionId, _commentsState.value.currentPage)
                 _commentsState.value = _commentsState.value.copy(
-                    comentarios = nuevaLista,
-                    totalComentarios = _commentsState.value.totalComentarios + 1,
                     estaEscribiendo = false,
                     success = "Comentario publicado"
                 )
             } catch (e: Exception) {
                 Log.e("CommentsViewModel", "Error adding comment", e)
                 _commentsState.value = _commentsState.value.copy(
-                    error = "Error al publicar comentario",
+                    error = "Error al publicar comentario: ${e.message}",
                     estaEscribiendo = false
                 )
             }
         }
     }
 
-    fun deleteComment(commentId: Long) {
+    fun deleteComment(publicacionId: Long, commentId: Long) {
         viewModelScope.launch {
             try {
-                // TODO: Implementar llamada DELETE a /api/comentarios/{commentId}
-                val comentariosActualizados = _commentsState.value.comentarios.filter { it.id != commentId }
+                upRedApi.deleteComment(commentId)
+                loadComments(publicacionId, _commentsState.value.currentPage)
                 _commentsState.value = _commentsState.value.copy(
-                    comentarios = comentariosActualizados,
-                    totalComentarios = _commentsState.value.totalComentarios - 1,
                     success = "Comentario eliminado"
                 )
             } catch (e: Exception) {
                 Log.e("CommentsViewModel", "Error deleting comment", e)
                 _commentsState.value = _commentsState.value.copy(
-                    error = "Error al eliminar comentario"
+                    error = "Error al eliminar comentario: ${e.message}"
                 )
-            }
-        }
-    }
-
-    fun updateComment(commentId: Long, nuevoContenido: String) {
-        viewModelScope.launch {
-            try {
-                // TODO: Implementar llamada PUT a /api/comentarios/{commentId}
-                val comentariosActualizados = _commentsState.value.comentarios.map { comment ->
-                    if (comment.id == commentId) {
-                        comment.copy(contenido = nuevoContenido)
-                    } else {
-                        comment
-                    }
-                }
-                _commentsState.value = _commentsState.value.copy(
-                    comentarios = comentariosActualizados,
-                    success = "Comentario actualizado"
-                )
-            } catch (e: Exception) {
-                Log.e("CommentsViewModel", "Error updating comment", e)
-                _commentsState.value = _commentsState.value.copy(
-                    error = "Error al actualizar comentario"
-                )
-            }
-        }
-    }
-
-    fun loadReplies(commentId: Long) {
-        viewModelScope.launch {
-            try {
-                // TODO: Implementar llamada GET a /api/comentarios/{commentId}/respuestas
-                Log.d("CommentsViewModel", "Loading replies for comment $commentId")
-            } catch (e: Exception) {
-                Log.e("CommentsViewModel", "Error loading replies", e)
             }
         }
     }
