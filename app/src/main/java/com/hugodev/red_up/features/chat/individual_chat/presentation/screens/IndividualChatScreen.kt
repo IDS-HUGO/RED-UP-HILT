@@ -10,13 +10,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,22 +32,15 @@ fun IndividualChatScreen(
     onBackClick: () -> Unit = {},
     viewModel: ChatViewModel = hiltViewModel()
 ) {
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
-    LaunchedEffect(Unit) {
-        viewModel.connectToChat()
-    }
+    LaunchedEffect(Unit) { viewModel.connectToChat() }
 
     LaunchedEffect(isConnected, userId) {
         if (isConnected) {
-            viewModel.joinRoom(
-                roomId = userId,
-                roomName = userName,
-                roomType = "directo"
-            )
+            viewModel.joinRoom(userId, userName, "directo")
         }
     }
 
@@ -62,146 +54,68 @@ fun IndividualChatScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
-                            modifier = Modifier.size(44.dp),
+                            modifier = Modifier.size(40.dp),
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    Icons.Default.Person,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
+                                Icon(Icons.Default.Person, null, modifier = Modifier.size(22.dp))
                             }
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
+                            Text(text = userName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Text(
-                                text = userName,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
+                                text = if (isConnected) "En línea" else "Desconectado",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                             )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                modifier = Modifier.padding(top = 2.dp)
-                            ) {
-                                Surface(
-                                    modifier = Modifier.size(6.dp),
-                                    shape = CircleShape,
-                                    color = if (isConnected) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.error
-                                    }
-                                ) {}
-                                Text(
-                                    text = if (isConnected) "Conectado" else "Desconectado",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = if (isConnected) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.error
-                                    }
-                                )
-                            }
                         }
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            modifier = Modifier.size(24.dp)
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
+        },
+        // SOLUCIÓN: Usar contentWindowInsets vacíos para que el Scaffold no añada paddings extras
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        bottomBar = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.ime) // Solo el teclado
+                    .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)), // Solo barra de sistema
+                tonalElevation = 8.dp,
+                shadowElevation = 8.dp
+            ) {
+                MessageInputIndividual(
+                    message = uiState.newMessage,
+                    onMessageChange = { viewModel.updateMessage(it) },
+                    onSendClick = { viewModel.sendMessage() },
+                    isConnected = isConnected
+                )
+            }
         }
     ) { padding ->
-
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.background),
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(16.dp)
         ) {
-
-            // ===============================
-            // LISTA DE MENSAJES REALES
-            // ===============================
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-
-                items(uiState.messages) { message ->
-                    IndividualMessageItem(
-                        message = message,
-                        isOwnMessage = message.senderId == uiState.currentUserId,
-                        senderName = message.senderName ?: userName
-                    )
-                }
-
-                items(uiState.pendingMessages) { message ->
-                    IndividualMessageItem(
-                        message = message,
-                        isOwnMessage = message.senderId == uiState.currentUserId,
-                        senderName = message.senderName ?: userName,
-                        isPending = true
-                    )
-                }
-            }
-
-            // ===============================
-            // INPUT DE MENSAJE
-            // ===============================
-            MessageInputIndividual(
-                message = uiState.newMessage,
-                onMessageChange = { viewModel.updateMessage(it) },
-                onSendClick = { viewModel.sendMessage() },
-                isConnected = isConnected
-            )
-
-            // ===============================
-            // ERROR SI EXISTE
-            // ===============================
-            uiState.error?.let { error ->
-                LaunchedEffect(error) {
-                    viewModel.clearError()
-                }
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+            items(uiState.messages) { message ->
+                IndividualMessageItem(
+                    message = message,
+                    isOwnMessage = message.senderId == uiState.currentUserId
+                )
             }
         }
     }
@@ -210,93 +124,25 @@ fun IndividualChatScreen(
 @Composable
 fun IndividualMessageItem(
     message: com.hugodev.red_up.features.chat.domain.entities.ChatMessage,
-    isOwnMessage: Boolean,
-    senderName: String,
-    isPending: Boolean = false
+    isOwnMessage: Boolean
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (isOwnMessage) Arrangement.End else Arrangement.Start
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(0.85f),
+            modifier = Modifier.fillMaxWidth(0.8f),
             shape = RoundedCornerShape(
-                topStart = 16.dp,
-                topEnd = 16.dp,
+                topStart = 16.dp, topEnd = 16.dp,
                 bottomStart = if (isOwnMessage) 16.dp else 4.dp,
                 bottomEnd = if (isOwnMessage) 4.dp else 16.dp
             ),
             colors = CardDefaults.cardColors(
-                containerColor = if (isPending) {
-                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-                } else if (isOwnMessage) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                }
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                containerColor = if (isOwnMessage) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+            )
         ) {
-            Column(
-                modifier = Modifier.padding(12.dp)
-            ) {
-                // Mostrar información del remitente solo en mensajes de otros
-                if (!isOwnMessage) {
-                    Text(
-                        text = senderName,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Text(
-                    text = message.message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 20.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = if (isOwnMessage) 6.dp else 8.dp)
-                )
-
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (isPending) {
-                        Icon(
-                            Icons.Default.Schedule,
-                            contentDescription = "Pendiente",
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "Enviando...",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        Text(
-                            text = formatTimestamp(message.timestamp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (isOwnMessage) {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = "Enviado",
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(text = message.message, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -309,98 +155,32 @@ fun MessageInputIndividual(
     onSendClick: () -> Unit,
     isConnected: Boolean
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp
+    Row(
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
+        OutlinedTextField(
+            value = message,
+            onValueChange = onMessageChange,
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("Escribe algo...") },
+            shape = RoundedCornerShape(24.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        )
+        IconButton(
+            onClick = onSendClick,
+            enabled = message.isNotBlank() && isConnected,
+            modifier = Modifier.background(if (message.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, CircleShape)
         ) {
-            // Estado de conexión
-            if (!isConnected) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        modifier = Modifier.size(6.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.error
-                    ) {}
-                    Text(
-                        text = "Conectando...",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedTextField(
-                    value = message,
-                    onValueChange = onMessageChange,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp),
-                    placeholder = { Text("Escribe algo...") },
-                    maxLines = 2,
-                    textStyle = MaterialTheme.typography.bodyMedium,
-                    shape = RoundedCornerShape(24.dp)
-                )
-
-                Surface(
-                    modifier = Modifier.size(48.dp),
-                    shape = CircleShape,
-                    color = if (message.isNotBlank() && isConnected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    }
-                ) {
-                    IconButton(
-                        onClick = onSendClick,
-                        enabled = message.isNotBlank() && isConnected,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Enviar",
-                            tint = if (message.isNotBlank() && isConnected) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
+            Icon(Icons.AutoMirrored.Filled.Send, null, tint = Color.White)
         }
     }
 }
 
-private fun formatTimestamp(timestamp: String): String {
-    return try {
-        val instant = java.time.Instant.parse(timestamp)
-        val localTime = java.time.LocalDateTime.ofInstant(
-            instant,
-            java.time.ZoneId.systemDefault()
-        )
-        java.time.format.DateTimeFormatter.ofPattern("HH:mm").format(localTime)
-    } catch (e: Exception) {
-        timestamp
-    }
-}
+private fun formatTimestamp(timestamp: String): String = ""

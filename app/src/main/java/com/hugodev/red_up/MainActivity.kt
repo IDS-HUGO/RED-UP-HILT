@@ -3,6 +3,7 @@ package com.hugodev.red_up
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
 import com.hugodev.red_up.core.ui.theme.RED_UPTheme
@@ -19,6 +20,10 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Habilitar el control manual de insets para que adjustResize funcione mejor con Compose
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         enableEdgeToEdge()
 
         setContent {

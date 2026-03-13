@@ -13,6 +13,8 @@ import com.hugodev.red_up.features.auth.presentation.screens.RegisterScreen
 import com.hugodev.red_up.features.auth.presentation.viewmodels.LoginViewModel
 import com.hugodev.red_up.features.auth.presentation.viewmodels.RegisterViewModel
 import com.hugodev.red_up.features.main.presentation.screens.MainScreen
+import com.hugodev.red_up.features.profile.presentation.screens.UserProfileScreen
+import com.hugodev.red_up.features.profile.presentation.viewmodels.ProfileViewModel
 
 @Composable
 fun NavigationGraph(
@@ -20,7 +22,6 @@ fun NavigationGraph(
     navigationManager: NavigationManager? = null,
     startDestination: String = Screen.Login.route
 ) {
-    // Establecer el NavController en el NavigationManager singleton
     LaunchedEffect(navController) {
         if (navigationManager is NavigationManagerImpl) {
             navigationManager.setNavController(navController)
@@ -33,6 +34,17 @@ fun NavigationGraph(
     ) {
         addAuthGraph(navController)
         addMainGraph(navController)
+        
+        // Perfil de Usuario externo (vía QR)
+        composable(Screen.UserProfile.route) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")?.toLongOrNull() ?: 0L
+            val viewModel: ProfileViewModel = hiltViewModel()
+            UserProfileScreen(
+                userId = userId,
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 

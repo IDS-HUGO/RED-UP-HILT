@@ -1,28 +1,15 @@
 package com.hugodev.red_up.features.chat.presentation.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.core.data.AuthPreferences
 import com.hugodev.red_up.features.chat.data.repositories.SocketIoChatRepository
 import com.hugodev.red_up.features.chat.domain.entities.ChatMessage
-import com.hugodev.red_up.features.chat.domain.usecases.ConnectToChatUseCase
-import com.hugodev.red_up.features.chat.domain.usecases.DisconnectFromChatUseCase
-import com.hugodev.red_up.features.chat.domain.usecases.JoinGroupChatUseCase
-import com.hugodev.red_up.features.chat.domain.usecases.ObserveChatConnectionUseCase
-import com.hugodev.red_up.features.chat.domain.usecases.ObserveChatMessagesUseCase
-import com.hugodev.red_up.features.chat.domain.usecases.SendChatMessageUseCase
-import com.hugodev.red_up.features.chat.domain.usecases.JoinDirectChatUseCase
-import com.hugodev.red_up.features.chat.domain.usecases.ObserveJoinedRoomUseCase
+import com.hugodev.red_up.features.chat.domain.usecases.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 data class ChatUiState(
@@ -31,10 +18,11 @@ data class ChatUiState(
     val isConnected: Boolean = false,
     val currentRoomId: String? = null,
     val currentRoomName: String? = null,
-    val currentRoomType: String? = null, // "directo" o "grupal"
+    val currentRoomType: String? = null,
     val currentUserId: String? = null,
     val error: String? = null,
-    val pendingMessages: List<ChatMessage> = emptyList()
+    val pendingMessages: List<ChatMessage> = emptyList(),
+    val isJoiningRoom: Boolean = false
 )
 
 @HiltViewModel
@@ -57,15 +45,11 @@ class ChatViewModel @Inject constructor(
     private val messageQueue = mutableListOf<ChatMessage>()
 
     val isConnected: StateFlow<Boolean> = observeChatConnectionUseCase()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false
-        )
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
-        observeMessages()
         observeConnectionState()
+        observeMessages()
         observeJoinedRoom()
         observeMessageHistory()
         initializeUserId()
@@ -74,7 +58,7 @@ class ChatViewModel @Inject constructor(
     private fun initializeUserId() {
         viewModelScope.launch {
             authPreferences.userIdFlow.collect { userId ->
-                _uiState.value = _uiState.value.copy(currentUserId = userId?.toString())
+                _uiState.update { it.copy(currentUserId = userId?.toString()) }
             }
         }
     }
@@ -82,7 +66,7 @@ class ChatViewModel @Inject constructor(
     private fun observeConnectionState() {
         viewModelScope.launch {
             observeChatConnectionUseCase().collect { connected ->
-                _uiState.value = _uiState.value.copy(isConnected = connected)
+                _uiState.update { it.copy(isConnected = connected) }
             }
         }
     }
@@ -90,133 +74,84 @@ class ChatViewModel @Inject constructor(
     private fun observeMessages() {
         viewModelScope.launch {
             observeChatMessagesUseCase().collect { message ->
-                val currentRoomId = _uiState.value.currentRoomId
-                if (currentRoomId.isNullOrBlank() || message.to != currentRoomId) return@collect
-                val currentMessages = _uiState.value.messages.toMutableList()
-                currentMessages.add(message)
-                _uiState.value = _uiState.value.copy(messages = currentMessages)
+                _uiState.update { state ->
+                    if (state.currentRoomId != null && message.to == state.currentRoomId) {
+                        state.copy(messages = state.messages + message)
+                    } else state
+                }
             }
         }
     }
 
     fun connectToChat() {
         viewModelScope.launch {
-            val userId = authPreferences.userIdFlow.firstOrNull()
-            if (userId == null) {
-                _uiState.value = _uiState.value.copy(error = "Usuario no autenticado")
-                return@launch
-            }
+            val userId = authPreferences.userIdFlow.firstOrNull() ?: return@launch
             connectToChatUseCase(userId.toString())
         }
     }
 
     fun joinRoom(roomId: String, roomName: String, roomType: String) {
-
-        if (!_uiState.value.isConnected) {
-            _uiState.value = _uiState.value.copy(error = "No conectado al servidor")
-            return
-        }
-
-        // Usar when en lugar de if-if independientes para evitar que se ejecuten ambos
-        when (roomType) {
-            "grupal" -> {
-                joinGroupChatUseCase(roomId)
-
-                _uiState.value = _uiState.value.copy(
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
                     currentRoomName = roomName,
                     currentRoomType = roomType,
-                    messages = emptyList()
+                    messages = emptyList(),
+                    currentRoomId = null,
+                    isJoiningRoom = true,
+                    error = null
                 )
-                // ⚠️ NO seteamos currentRoomId aquí para chat grupal
-                // Se setea cuando llegue group_joined con el sala_uuid correcto
             }
-            "directo" -> {
-                joinDirectChatUseCase(roomId)
-
-                _uiState.value = _uiState.value.copy(
-                    currentRoomName = roomName,
-                    currentRoomType = roomType,
-                    messages = emptyList()
-                )
-                // ⚠️ NO seteamos currentRoomId aquí
-                // Se setea cuando llegue direct_chat_joined
-            }
-            else -> {
-                _uiState.value = _uiState.value.copy(
-                    error = "Tipo de sala desconocido: $roomType"
-                )
+            try {
+                if (roomType == "grupal") {
+                    joinGroupChatUseCase(roomId)
+                } else {
+                    joinDirectChatUseCase(roomId)
+                }
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error joining room", e)
+                _uiState.update { it.copy(error = "No se pudo unir al chat", isJoiningRoom = false) }
             }
         }
     }
 
     fun updateMessage(message: String) {
-        _uiState.value = _uiState.value.copy(newMessage = message)
+        _uiState.update { it.copy(newMessage = message) }
     }
 
     fun sendMessage() {
         val state = _uiState.value
-        
-        if (state.newMessage.isBlank()) return
-        if (state.currentUserId.isNullOrBlank()) {
-            _uiState.value = state.copy(error = "Usuario no identificado")
-            return
-        }
-        if (state.currentRoomType.isNullOrBlank()) {
-            _uiState.value = state.copy(error = "Tipo de sala no definido")
-            return
-        }
+        if (state.newMessage.isBlank() || state.currentUserId == null) return
 
+        val timestamp = System.currentTimeMillis().toString()
         val message = ChatMessage(
             to = state.currentRoomId ?: "temp",
             message = state.newMessage,
             senderId = state.currentUserId,
-            timestamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
-            type = state.currentRoomType,
+            timestamp = timestamp,
+            type = state.currentRoomType ?: "individual",
             messageType = "texto"
         )
 
-        // Si no hay sala activa aún, encolar el mensaje
-        if (state.currentRoomId.isNullOrBlank()) {
+        if (state.currentRoomId == null) {
             messageQueue.add(message)
-            val updatedPending = _uiState.value.pendingMessages + message
-            _uiState.value = state.copy(
-                newMessage = "",
-                pendingMessages = updatedPending
-            )
+            _uiState.update { it.copy(newMessage = "", pendingMessages = it.pendingMessages + message) }
         } else {
-            // Enviar inmediatamente si hay sala activa
             sendChatMessageUseCase(message)
-            _uiState.value = state.copy(newMessage = "")
+            _uiState.update { it.copy(newMessage = "") }
         }
-    }
-
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        disconnectFromChatUseCase()
     }
 
     private fun observeJoinedRoom() {
         viewModelScope.launch {
             observeJoinedRoomUseCase().collect { salaUuid ->
-                _uiState.value = _uiState.value.copy(
-                    currentRoomId = salaUuid
-                )
+                _uiState.update { it.copy(currentRoomId = salaUuid, isJoiningRoom = false, error = null) }
+                socketIoChatRepository.loadMessageHistory(salaUuid)
                 
-                // Cargar historial de mensajes
-                socketIoChatRepository.loadMessageHistory(salaUuid, limit = 50)
-                
-                // Enviar mensajes que estaban pendientes
                 if (messageQueue.isNotEmpty()) {
-                    messageQueue.forEach { message ->
-                        val updatedMessage = message.copy(to = salaUuid)
-                        sendChatMessageUseCase(updatedMessage)
-                    }
+                    messageQueue.forEach { sendChatMessageUseCase(it.copy(to = salaUuid)) }
                     messageQueue.clear()
-                    _uiState.value = _uiState.value.copy(pendingMessages = emptyList())
+                    _uiState.update { it.copy(pendingMessages = emptyList()) }
                 }
             }
         }
@@ -224,42 +159,16 @@ class ChatViewModel @Inject constructor(
 
     private fun observeMessageHistory() {
         viewModelScope.launch {
-            socketIoChatRepository.observeMessageHistory().collect { historyMessages ->
-                val currentRoomId = _uiState.value.currentRoomId
-                val historyRoomId = historyMessages.firstOrNull()?.to
-                if (currentRoomId.isNullOrBlank() || historyRoomId.isNullOrBlank()) return@collect
-                if (historyRoomId != currentRoomId) return@collect
-
-                val mergedMessages = mergeHistory(
-                    current = _uiState.value.messages,
-                    history = historyMessages
-                )
-                _uiState.value = _uiState.value.copy(messages = mergedMessages)
+            socketIoChatRepository.observeMessageHistory().collect { history ->
+                _uiState.update { it.copy(messages = history) }
             }
         }
     }
 
-    private fun mergeHistory(
-        current: List<ChatMessage>,
-        history: List<ChatMessage>
-    ): List<ChatMessage> {
-        val seen = HashSet<String>(history.size + current.size)
-        val merged = ArrayList<ChatMessage>(history.size + current.size)
+    fun clearError() { _uiState.update { it.copy(error = null) } }
 
-        for (message in history) {
-            val key = messageKey(message)
-            if (seen.add(key)) merged.add(message)
-        }
-
-        for (message in current) {
-            val key = messageKey(message)
-            if (seen.add(key)) merged.add(message)
-        }
-
-        return merged
-    }
-
-    private fun messageKey(message: ChatMessage): String {
-        return message.id ?: "${message.senderId}|${message.timestamp}|${message.message}"
+    override fun onCleared() {
+        super.onCleared()
+        disconnectFromChatUseCase()
     }
 }

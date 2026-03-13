@@ -81,9 +81,9 @@ class ProfileViewModel @Inject constructor(
                     isLoading = false
                 )
             } catch (e: Exception) {
-                Log.e("ProfileViewModel", "Error loading profile", e)
+                Log.e("ProfileViewModel", "Error loading current profile", e)
                 _profileState.value = _profileState.value.copy(
-                    error = "Error al cargar perfil: ${e.message}",
+                    error = "Error al cargar tu perfil: ${e.message}",
                     isLoading = false
                 )
             }
@@ -92,10 +92,47 @@ class ProfileViewModel @Inject constructor(
 
     fun loadUserProfile(userId: Long) {
         viewModelScope.launch {
-            _profileState.value = _profileState.value.copy(isLoading = true, error = null)
+            _profileState.value = _profileState.value.copy(isLoading = true, error = null, userProfile = null, userStats = null)
             try {
+                // Cargamos siempre stats (lo más probable que exista)
                 val stats = upRedApi.getUserStats(userId)
+
+                // Intentamos cargar el perfil completo, pero si falla,
+                // construimos un perfil mínimo a partir de las stats.
+                val profile = try {
+                    upRedApi.getUserProfile(userId)
+                } catch (e: Exception) {
+                    null
+                }
+
+                val userProfile = profile?.let {
+                    UserProfile(
+                        id = it.id,
+                        nombre = it.nombre,
+                        apellidoPaterno = it.apellidoPaterno,
+                        apellidoMaterno = it.apellidoMaterno.orEmpty(),
+                        correoInstitucional = it.correoInstitucional,
+                        fotoPerfil = it.fotoPerfilUrl,
+                        biografia = it.biografia,
+                        telefono = it.telefono,
+                        carrera = it.carrera?.nombre,
+                        cuatrimestre = it.cuatrimestre?.numero
+                    )
+                } ?: UserProfile(
+                    id = userId,
+                    nombre = "Usuario $userId",
+                    apellidoPaterno = "",
+                    apellidoMaterno = "",
+                    correoInstitucional = "",
+                    fotoPerfil = null,
+                    biografia = null,
+                    telefono = null,
+                    carrera = null,
+                    cuatrimestre = null
+                )
+
                 _profileState.value = _profileState.value.copy(
+                    userProfile = userProfile,
                     userStats = UserStats(
                         totalSeguidores = stats.totalSeguidores,
                         totalSiguiendo = stats.totalSiguiendo,
@@ -103,12 +140,14 @@ class ProfileViewModel @Inject constructor(
                         totalComentarios = stats.totalComentarios,
                         totalReacciones = stats.totalReacciones
                     ),
-                    isLoading = false
+                    esMismoUsuario = false,
+                    isLoading = false,
+                    error = null
                 )
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error loading user profile", e)
                 _profileState.value = _profileState.value.copy(
-                    error = "Error al cargar perfil: ${e.message}",
+                    error = "Error al cargar el perfil escaneado",
                     isLoading = false
                 )
             }
@@ -130,9 +169,6 @@ class ProfileViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error loading stats", e)
-                _profileState.value = _profileState.value.copy(
-                    error = "Error al cargar estadísticas"
-                )
             }
         }
     }
@@ -141,16 +177,10 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = upRedApi.followUser(userId)
-                _profileState.value = _profileState.value.copy(
-                    yaSegue = true,
-                    success = response.message
-                )
+                _profileState.value = _profileState.value.copy(yaSegue = true, success = response.message)
                 loadUserStats(userId)
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error following user", e)
-                _profileState.value = _profileState.value.copy(
-                    error = "Error al seguir usuario: ${e.message}"
-                )
             }
         }
     }
@@ -159,16 +189,10 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = upRedApi.unfollowUser(userId)
-                _profileState.value = _profileState.value.copy(
-                    yaSegue = false,
-                    success = response.message
-                )
+                _profileState.value = _profileState.value.copy(yaSegue = false, success = response.message)
                 loadUserStats(userId)
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error unfollowing user", e)
-                _profileState.value = _profileState.value.copy(
-                    error = "Error al dejar de seguir usuario: ${e.message}"
-                )
             }
         }
     }
@@ -177,41 +201,24 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _profileState.value = _profileState.value.copy(isLoading = true)
             try {
-                val updated = upRedApi.updateCurrentProfile(
-                    UpdateProfileRequestDto(
-                        biografia = biography,
-                        telefono = telefono
-                    )
-                )
+                val updated = upRedApi.updateCurrentProfile(UpdateProfileRequestDto(biografia = biography, telefono = telefono))
                 _profileState.value = _profileState.value.copy(
                     userProfile = _profileState.value.userProfile?.copy(
                         nombre = updated.nombre,
                         apellidoPaterno = updated.apellidoPaterno,
-                        apellidoMaterno = updated.apellidoMaterno.orEmpty(),
-                        correoInstitucional = updated.correoInstitucional,
                         biografia = updated.biografia,
-                        telefono = updated.telefono,
-                        carrera = updated.carrera?.nombre,
-                        cuatrimestre = updated.cuatrimestre?.numero,
-                        fotoPerfil = updated.fotoPerfilUrl
+                        telefono = updated.telefono
                     ),
-                    success = "Perfil actualizado correctamente",
+                    success = "Perfil actualizado",
                     isLoading = false
                 )
             } catch (e: Exception) {
-                Log.e("ProfileViewModel", "Error updating profile", e)
-                _profileState.value = _profileState.value.copy(
-                    error = "Error al actualizar perfil: ${e.message}",
-                    isLoading = false
-                )
+                _profileState.value = _profileState.value.copy(error = "Error al actualizar", isLoading = false)
             }
         }
     }
 
     fun clearMessages() {
-        _profileState.value = _profileState.value.copy(
-            error = null,
-            success = null
-        )
+        _profileState.value = _profileState.value.copy(error = null, success = null)
     }
 }
