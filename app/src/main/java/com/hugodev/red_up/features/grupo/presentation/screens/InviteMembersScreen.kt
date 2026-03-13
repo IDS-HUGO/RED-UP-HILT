@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,6 +33,7 @@ fun InviteMembersScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    var showQrScanner by remember { mutableStateOf(false) }
 
     LaunchedEffect(groupId) {
         viewModel.setGroupId(groupId)
@@ -55,18 +57,34 @@ fun InviteMembersScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            // Search bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { query ->
-                    searchQuery = query
-                    viewModel.searchUsers(query)
-                },
+            // Search + QR bar
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar por nombre o email...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                singleLine = true
-            )
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { query ->
+                        searchQuery = query
+                        viewModel.searchUsers(query)
+                    },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Buscar por nombre, email o matrícula...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                IconButton(
+                    onClick = { showQrScanner = true }
+                ) {
+                    Icon(
+                        Icons.Default.QrCodeScanner,
+                        contentDescription = "Escanear QR para invitar"
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -126,6 +144,35 @@ fun InviteMembersScreen(
                     kotlinx.coroutines.delay(2000)
                     viewModel.clearSuccessMessage()
                 }
+            }
+        }
+
+        if (showQrScanner) {
+            // Escáner QR para invitar miembro y volver a la vista del grupo
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background.copy(alpha = 0.98f)
+            ) {
+                com.hugodev.red_up.features.qr.QrScannerScreen(
+                    onBackClick = { showQrScanner = false },
+                    onResultFound = { result ->
+                        val userId = when {
+                            result.startsWith("PROFILE-") -> {
+                                val raw = result.removePrefix("PROFILE-")
+                                raw.split("|").firstOrNull()?.toLongOrNull()
+                            }
+                            result.all { it.isDigit() } -> result.toLongOrNull()
+                            else -> null
+                        }
+
+                        if (userId != null) {
+                            viewModel.inviteMember(userId)
+                            // Después de invitar por QR, volvemos a la pantalla principal del grupo
+                            onBackClick()
+                        }
+                        showQrScanner = false
+                    }
+                )
             }
         }
     }

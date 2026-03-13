@@ -84,7 +84,7 @@ fun ChatScreen(
                     onMessageChange = viewModel::updateMessage,
                     onSendClick = viewModel::sendMessage,
                     isConnected = isConnected,
-                    isConnectingToRoom = uiState.currentRoomId.isNullOrBlank()
+                    isConnectingToRoom = uiState.isJoiningRoom || uiState.currentRoomId.isNullOrBlank()
                 )
             }
         }
@@ -137,7 +137,17 @@ fun MessageInput(message: String, onMessageChange: (String) -> Unit, onSendClick
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             )
         )
-        IconButton(onClick = onSendClick, enabled = message.isNotBlank() && isConnected && !isConnectingToRoom, modifier = Modifier.background(if (message.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, CircleShape)) {
+        IconButton(
+            onClick = onSendClick,
+            enabled = message.isNotBlank() && isConnected && !isConnectingToRoom,
+            modifier = Modifier.background(
+                if (message.isNotBlank() && isConnected && !isConnectingToRoom)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.surfaceVariant,
+                CircleShape
+            )
+        ) {
             Icon(Icons.AutoMirrored.Filled.Send, null, tint = Color.White)
         }
     }

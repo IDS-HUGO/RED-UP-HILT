@@ -21,7 +21,8 @@ data class ChatUiState(
     val currentRoomType: String? = null,
     val currentUserId: String? = null,
     val error: String? = null,
-    val pendingMessages: List<ChatMessage> = emptyList()
+    val pendingMessages: List<ChatMessage> = emptyList(),
+    val isJoiningRoom: Boolean = false
 )
 
 @HiltViewModel
@@ -91,9 +92,26 @@ class ChatViewModel @Inject constructor(
 
     fun joinRoom(roomId: String, roomName: String, roomType: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(currentRoomName = roomName, currentRoomType = roomType, messages = emptyList(), currentRoomId = null) }
-            if (roomType == "grupal") joinGroupChatUseCase(roomId)
-            else joinDirectChatUseCase(roomId)
+            _uiState.update {
+                it.copy(
+                    currentRoomName = roomName,
+                    currentRoomType = roomType,
+                    messages = emptyList(),
+                    currentRoomId = null,
+                    isJoiningRoom = true,
+                    error = null
+                )
+            }
+            try {
+                if (roomType == "grupal") {
+                    joinGroupChatUseCase(roomId)
+                } else {
+                    joinDirectChatUseCase(roomId)
+                }
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Error joining room", e)
+                _uiState.update { it.copy(error = "No se pudo unir al chat", isJoiningRoom = false) }
+            }
         }
     }
 
@@ -127,7 +145,7 @@ class ChatViewModel @Inject constructor(
     private fun observeJoinedRoom() {
         viewModelScope.launch {
             observeJoinedRoomUseCase().collect { salaUuid ->
-                _uiState.update { it.copy(currentRoomId = salaUuid) }
+                _uiState.update { it.copy(currentRoomId = salaUuid, isJoiningRoom = false, error = null) }
                 socketIoChatRepository.loadMessageHistory(salaUuid)
                 
                 if (messageQueue.isNotEmpty()) {

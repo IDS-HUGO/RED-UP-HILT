@@ -42,7 +42,8 @@ fun MyProfileScreen(
     if (showQrDialog && state.userProfile != null) {
         ShowQrDialog(
             title = "Mi Código QR",
-            content = "PROFILE-${state.userProfile!!.id}",
+            // Incluimos también el nombre para mejorar la experiencia al escanear
+            content = "PROFILE-${state.userProfile!!.id}|${state.userProfile!!.nombre} ${state.userProfile!!.apellidoPaterno}",
             onDismiss = { showQrDialog = false }
         )
     }
@@ -164,6 +165,33 @@ fun UserProfileScreen(
                     onUnfollowClick = { viewModel.unfollowUser(userId) },
                     isMyProfile = state.esMismoUsuario
                 )
+            }
+            state.error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = state.error ?: "No se pudo cargar el perfil",
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Perfil no encontrado",
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

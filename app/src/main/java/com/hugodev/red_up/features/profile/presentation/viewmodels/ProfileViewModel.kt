@@ -92,33 +92,47 @@ class ProfileViewModel @Inject constructor(
 
     fun loadUserProfile(userId: Long) {
         viewModelScope.launch {
-            _profileState.value = _profileState.value.copy(isLoading = true, error = null)
+            _profileState.value = _profileState.value.copy(isLoading = true, error = null, userProfile = null, userStats = null)
             try {
-                // CARGAMOS EL PERFIL COMPLETO (No solo estadísticas)
+                // Cargamos siempre stats (lo más probable que exista)
+                val stats = upRedApi.getUserStats(userId)
+
+                // Intentamos cargar el perfil completo, pero si falla,
+                // construimos un perfil mínimo a partir de las stats.
                 val profile = try {
                     upRedApi.getUserProfile(userId)
                 } catch (e: Exception) {
-                    // Fallback si la ruta específica falla, intentamos cargar solo stats
                     null
                 }
-                
-                val stats = upRedApi.getUserStats(userId)
+
+                val userProfile = profile?.let {
+                    UserProfile(
+                        id = it.id,
+                        nombre = it.nombre,
+                        apellidoPaterno = it.apellidoPaterno,
+                        apellidoMaterno = it.apellidoMaterno.orEmpty(),
+                        correoInstitucional = it.correoInstitucional,
+                        fotoPerfil = it.fotoPerfilUrl,
+                        biografia = it.biografia,
+                        telefono = it.telefono,
+                        carrera = it.carrera?.nombre,
+                        cuatrimestre = it.cuatrimestre?.numero
+                    )
+                } ?: UserProfile(
+                    id = userId,
+                    nombre = "Usuario $userId",
+                    apellidoPaterno = "",
+                    apellidoMaterno = "",
+                    correoInstitucional = "",
+                    fotoPerfil = null,
+                    biografia = null,
+                    telefono = null,
+                    carrera = null,
+                    cuatrimestre = null
+                )
 
                 _profileState.value = _profileState.value.copy(
-                    userProfile = profile?.let {
-                        UserProfile(
-                            id = it.id,
-                            nombre = it.nombre,
-                            apellidoPaterno = it.apellidoPaterno,
-                            apellidoMaterno = it.apellidoMaterno.orEmpty(),
-                            correoInstitucional = it.correoInstitucional,
-                            fotoPerfil = it.fotoPerfilUrl,
-                            biografia = it.biografia,
-                            telefono = it.telefono,
-                            carrera = it.carrera?.nombre,
-                            cuatrimestre = it.cuatrimestre?.numero
-                        )
-                    },
+                    userProfile = userProfile,
                     userStats = UserStats(
                         totalSeguidores = stats.totalSeguidores,
                         totalSiguiendo = stats.totalSiguiendo,
@@ -127,7 +141,8 @@ class ProfileViewModel @Inject constructor(
                         totalReacciones = stats.totalReacciones
                     ),
                     esMismoUsuario = false,
-                    isLoading = false
+                    isLoading = false,
+                    error = null
                 )
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error loading user profile", e)

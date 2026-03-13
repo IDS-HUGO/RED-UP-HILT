@@ -40,14 +40,6 @@ fun GroupDetailScreen(
         viewModel.loadGroupDetail(groupId)
     }
 
-    if (showQrDialog && uiState.group != null) {
-        ShowQrDialog(
-            title = "QR del Grupo",
-            content = "GROUP-${uiState.group!!.id}",
-            onDismiss = { showQrDialog = false }
-        )
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -65,14 +57,7 @@ fun GroupDetailScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
                 },
-                actions = {
-                    // BOTÓN QR PARA EL GRUPO
-                    if (uiState.group != null) {
-                        IconButton(onClick = { showQrDialog = true }) {
-                            Icon(Icons.Default.QrCode, contentDescription = "QR del grupo")
-                        }
-                    }
-                }
+                actions = { }
             )
         },
         floatingActionButton = {

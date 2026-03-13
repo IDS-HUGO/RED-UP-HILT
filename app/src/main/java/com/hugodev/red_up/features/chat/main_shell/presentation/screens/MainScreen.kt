@@ -186,14 +186,10 @@ fun MainScreen(
                     onResultFound = { result ->
                         when {
                             result.startsWith("PROFILE-") -> {
-                                val userId = result.removePrefix("PROFILE-").toLongOrNull() ?: 0L
+                                val raw = result.removePrefix("PROFILE-")
+                                val parts = raw.split("|")
+                                val userId = parts.getOrNull(0)?.toLongOrNull() ?: 0L
                                 navController.navigate(Screen.UserProfile.createRoute(userId)) {
-                                    popUpTo(Screen.QrScanner.route) { inclusive = true }
-                                }
-                            }
-                            result.startsWith("GROUP-") -> {
-                                val groupId = result.removePrefix("GROUP-")
-                                navController.navigate(Screen.Chat.createRoute(groupId, "Grupo Escaneado", "grupal")) {
                                     popUpTo(Screen.QrScanner.route) { inclusive = true }
                                 }
                             }
