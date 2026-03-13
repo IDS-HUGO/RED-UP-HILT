@@ -40,4 +40,12 @@ sealed class Screen(val route: String) {
         fun createRoute(roomId: String, roomName: String, roomType: String) = 
             "chat/$roomId/$roomName/$roomType"
     }
+
+    // QR Scanner
+    object QrScanner : Screen("qr_scanner")
+
+    // Perfil de otro usuario
+    object UserProfile : Screen("user_profile/{userId}") {
+        fun createRoute(userId: Long) = "user_profile/$userId"
+    }
 }

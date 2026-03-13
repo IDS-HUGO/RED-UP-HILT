@@ -10,24 +10,14 @@ import com.hugodev.red_up.features.publications.data.datasources.remote.models.U
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.UserStatsDto
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.Multipart
-import retrofit2.http.GET
-import retrofit2.http.Part
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface UpRedApi {
     @GET("api/publicaciones")
     suspend fun getPublications(): List<PublicationDto>
 
     @POST("api/publicaciones")
-    suspend fun createPublication(
-        @Body request: CreatePublicationRequestDto
-    ): PublicationDto
+    suspend fun createPublication(@Body request: CreatePublicationRequestDto): PublicationDto
 
     @Multipart
     @POST("api/publicaciones")
@@ -39,9 +29,7 @@ interface UpRedApi {
     ): PublicationDto
 
     @DELETE("api/publicaciones/{id}")
-    suspend fun deletePublication(
-        @Path("id") id: Long
-    )
+    suspend fun deletePublication(@Path("id") id: Long)
 
     @PUT("api/publicaciones/{id}")
     suspend fun editPublication(
@@ -57,36 +45,26 @@ interface UpRedApi {
     ): List<CommentDto>
 
     @POST("api/publicaciones/{publicacionId}/comentarios")
-    suspend fun addComment(
-        @Path("publicacionId") publicacionId: Long,
-        @Body request: CreateCommentRequestDto
-    ): CommentDto
+    suspend fun addComment(@Path("publicacionId") publicacionId: Long, @Body request: CreateCommentRequestDto): CommentDto
 
     @DELETE("api/publicaciones/comentarios/{comentarioId}")
-    suspend fun deleteComment(
-        @Path("comentarioId") comentarioId: Long
-    ): ApiMessageDto
+    suspend fun deleteComment(@Path("comentarioId") comentarioId: Long): ApiMessageDto
 
     @GET("api/usuarios/perfil/actual")
     suspend fun getCurrentProfile(): ProfileDto
 
+    @GET("api/usuarios/{usuarioId}/perfil")
+    suspend fun getUserProfile(@Path("usuarioId") userId: Long): ProfileDto
+
     @GET("api/usuarios/{usuarioId}/stats")
-    suspend fun getUserStats(
-        @Path("usuarioId") usuarioId: Long
-    ): UserStatsDto
+    suspend fun getUserStats(@Path("usuarioId") usuarioId: Long): UserStatsDto
 
     @PUT("api/usuarios/perfil/actualizar")
-    suspend fun updateCurrentProfile(
-        @Body request: UpdateProfileRequestDto
-    ): ProfileDto
+    suspend fun updateCurrentProfile(@Body request: UpdateProfileRequestDto): ProfileDto
 
     @POST("api/usuarios/{usuarioId}/seguir")
-    suspend fun followUser(
-        @Path("usuarioId") usuarioId: Long
-    ): ApiMessageDto
+    suspend fun followUser(@Path("usuarioId") usuarioId: Long): ApiMessageDto
 
     @DELETE("api/usuarios/{usuarioId}/seguir")
-    suspend fun unfollowUser(
-        @Path("usuarioId") usuarioId: Long
-    ): ApiMessageDto
+    suspend fun unfollowUser(@Path("usuarioId") usuarioId: Long): ApiMessageDto
 }

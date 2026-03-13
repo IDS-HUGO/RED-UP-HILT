@@ -1,5 +1,6 @@
 package com.hugodev.red_up.features.publications.presentation.viewmodels
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.core.data.AuthPreferences
@@ -143,23 +144,40 @@ data class CreatePublicacionUiState(
 
 @HiltViewModel
 class CreatePublicacionViewModel @Inject constructor(
-    private val createPublicationUseCase: CreatePublicationUseCase
+    private val createPublicationUseCase: CreatePublicationUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CreatePublicacionUiState())
+    // Claves para persistencia
+    private companion object {
+        const val KEY_TITULO = "create_pub_titulo"
+        const val KEY_CONTENIDO = "create_pub_contenido"
+        const val KEY_URI = "create_pub_uri"
+    }
+
+    private val _uiState = MutableStateFlow(
+        CreatePublicacionUiState(
+            titulo = savedStateHandle[KEY_TITULO] ?: "",
+            contenido = savedStateHandle[KEY_CONTENIDO] ?: "",
+            imagenPreviewUri = savedStateHandle[KEY_URI]
+        )
+    )
     val uiState: StateFlow<CreatePublicacionUiState> = _uiState.asStateFlow()
     private var imageBytes: ByteArray? = null
 
     fun onTituloChange(titulo: String) {
+        savedStateHandle[KEY_TITULO] = titulo
         _uiState.value = _uiState.value.copy(titulo = titulo, error = null)
     }
 
     fun onContenidoChange(contenido: String) {
+        savedStateHandle[KEY_CONTENIDO] = contenido
         _uiState.value = _uiState.value.copy(contenido = contenido, error = null)
     }
 
     fun onImagenCapturada(previewUri: String, bytes: ByteArray) {
         imageBytes = bytes
+        savedStateHandle[KEY_URI] = previewUri
         _uiState.value = _uiState.value.copy(imagenPreviewUri = previewUri, error = null)
     }
 
@@ -188,6 +206,7 @@ class CreatePublicacionViewModel @Inject constructor(
             ).fold(
                 onSuccess = {
                     imageBytes = null
+                    clearSavedState()
                     _uiState.value = CreatePublicacionUiState(isSuccess = true)
                 },
                 onFailure = { throwable ->
@@ -198,6 +217,12 @@ class CreatePublicacionViewModel @Inject constructor(
                 }
             )
         }
+    }
+
+    private fun clearSavedState() {
+        savedStateHandle.remove<String>(KEY_TITULO)
+        savedStateHandle.remove<String>(KEY_CONTENIDO)
+        savedStateHandle.remove<String>(KEY_URI)
     }
 
     fun clearError() {

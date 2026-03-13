@@ -22,7 +22,8 @@
             android:name="com.hugodev.red_up.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.RED_UP">
+            android:theme="@style/Theme.RED_UP"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

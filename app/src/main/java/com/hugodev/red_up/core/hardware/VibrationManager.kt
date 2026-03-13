@@ -34,4 +34,16 @@ class VibrationManager @Inject constructor(
             vibrator.vibrate(pattern, -1)
         }
     }
+
+    /**
+     * Feedback háptico ligero (como un click de botón físico).
+     * Ideal para interacciones de UI como Likes o clics en botones.
+     */
+    fun vibrateClick() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+        } else {
+            vibrate(20) // Vibración muy corta para versiones antiguas
+        }
+    }
 }
