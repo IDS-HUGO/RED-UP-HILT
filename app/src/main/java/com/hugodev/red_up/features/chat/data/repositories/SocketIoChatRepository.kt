@@ -2,6 +2,7 @@ package com.hugodev.red_up.features.chat.data.repositories
 
 import android.util.Log
 import com.hugodev.red_up.core.di.SocketBaseUrl
+import com.hugodev.red_up.core.hardware.VibrationManager
 import com.hugodev.red_up.features.chat.data.datasources.remote.mapper.toChatMessage
 import com.hugodev.red_up.features.chat.data.datasources.remote.mapper.toJsonObject
 import com.hugodev.red_up.features.chat.domain.entities.ChatMessage
@@ -18,7 +19,8 @@ import org.json.JSONObject
 
 @Singleton
 class SocketIoChatRepository @Inject constructor(
-    @SocketBaseUrl private val socketBaseUrl: String
+    @SocketBaseUrl private val socketBaseUrl: String,
+    private val vibrationManager: VibrationManager // Inyectamos el gestor de vibración
 ) : ChatRepository {
 
     private val messagesFlow = MutableSharedFlow<ChatMessage>(extraBufferCapacity = 64)
@@ -71,6 +73,10 @@ class SocketIoChatRepository @Inject constructor(
                         val payload = args.firstOrNull() as? JSONObject ?: return@on
                         Log.d(TAG, "Received message: $payload")
                         val message = payload.toChatMessage()
+                        
+                        // Activamos la vibración al recibir un mensaje
+                        vibrationManager.vibrateNotification()
+
                         messagesFlow.tryEmit(message)
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing message", e)

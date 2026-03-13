@@ -4,9 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -41,6 +40,7 @@ fun CommentsBottomSheetContent(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .imePadding()
     ) {
         // Header
         Row(
@@ -60,7 +60,7 @@ fun CommentsBottomSheetContent(
             }
         }
 
-        Divider()
+        HorizontalDivider()
 
         // Lista de comentarios
         LazyColumn(
@@ -87,54 +87,52 @@ fun CommentsBottomSheetContent(
                     }
                 }
             }
-
-            if (state.error != null) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = state.error ?: "Error desconocido",
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-            }
         }
 
-        Divider()
+        HorizontalDivider()
 
         // Campo de entrada de comentario
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            tonalElevation = 2.dp
         ) {
-            OutlinedTextField(
-                value = nuevoComentario,
-                onValueChange = { nuevoComentario = it },
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                placeholder = { Text("Escribe un comentario...") },
-                maxLines = 3
-            )
-
-            IconButton(
-                onClick = {
-                    if (nuevoComentario.isNotEmpty()) {
-                        viewModel.addComment(publicacionId, nuevoComentario)
-                        nuevoComentario = ""
-                    }
-                },
-                enabled = nuevoComentario.isNotEmpty() && !state.estaEscribiendo
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Send, contentDescription = "Enviar comentario")
+                OutlinedTextField(
+                    value = nuevoComentario,
+                    onValueChange = { nuevoComentario = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    placeholder = { Text("Escribe un comentario...") },
+                    maxLines = 3,
+                    shape = RoundedCornerShape(24.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                )
+
+                IconButton(
+                    onClick = {
+                        if (nuevoComentario.isNotEmpty()) {
+                            viewModel.addComment(publicacionId, nuevoComentario)
+                            nuevoComentario = ""
+                        }
+                    },
+                    enabled = nuevoComentario.isNotEmpty() && !state.estaEscribiendo,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(Icons.Default.Send, contentDescription = "Enviar")
+                }
             }
         }
     }
@@ -157,98 +155,56 @@ fun CommentItem(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar
             Surface(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(36.dp)
                     .clip(CircleShape),
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = comment.usuarioNombre.firstOrNull()?.toString() ?: "",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            // Info del usuario
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${comment.usuarioNombre} ${comment.usuarioApellido}",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = comment.creadoEn,
-                    fontSize = 11.sp,
-                    color = Color.Gray
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            // Opciones
             Box {
-                IconButton(
-                    onClick = { mostrarOpciones = !mostrarOpciones },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = "Opciones",
-                        modifier = Modifier.size(18.dp)
-                    )
+                IconButton(onClick = { mostrarOpciones = !mostrarOpciones }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = null, modifier = Modifier.size(20.dp))
                 }
-
-                DropdownMenu(
-                    expanded = mostrarOpciones,
-                    onDismissRequest = { mostrarOpciones = false }
-                ) {
+                DropdownMenu(expanded = mostrarOpciones, onDismissRequest = { mostrarOpciones = false }) {
                     DropdownMenuItem(
                         text = { Text("Eliminar") },
-                        onClick = {
-                            onDelete()
-                            mostrarOpciones = false
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.Delete, contentDescription = "Eliminar")
-                        }
+                        onClick = { onDelete(); mostrarOpciones = false },
+                        leadingIcon = { Icon(Icons.Default.Delete, null) }
                     )
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Contenido del comentario
         Text(
             text = comment.contenido,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(start = 48.dp)
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(start = 48.dp, top = 4.dp)
         )
-
-        // Respuestas si las hay
-        if (comment.respuestas.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            TextButton(
-                onClick = { /* Mostrar respuestas */ },
-                modifier = Modifier.padding(start = 48.dp)
-            ) {
-                Text(
-                    text = "Ver ${comment.respuestas.size} respuesta${if (comment.respuestas.size > 1) "s" else ""}",
-                    fontSize = 12.sp
-                )
-            }
-        }
     }
-
-    Divider()
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -265,26 +221,66 @@ fun CommentsScreen(
         viewModel.loadComments(publicacionId)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Header
-        TopAppBar(
-            title = { Text("Comentarios (${state.totalComentarios})", fontWeight = FontWeight.Bold) },
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Comentarios", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar")
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .imePadding(),
+                tonalElevation = 8.dp,
+                shadowElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .navigationBarsPadding(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = nuevoComentario,
+                        onValueChange = { nuevoComentario = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Escribe un comentario...") },
+                        maxLines = 3,
+                        shape = RoundedCornerShape(24.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        onClick = {
+                            if (nuevoComentario.isNotEmpty()) {
+                                viewModel.addComment(publicacionId, nuevoComentario)
+                                nuevoComentario = ""
+                            }
+                        },
+                        enabled = nuevoComentario.isNotEmpty() && !state.estaEscribiendo
+                    ) {
+                        Icon(Icons.Default.Send, contentDescription = "Enviar", tint = MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
-        )
-
-        // Lista de comentarios
+        }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
+                .fillMaxSize()
+                .padding(padding)
         ) {
             items(state.comentarios) { comentario ->
                 CommentItem(
@@ -292,50 +288,12 @@ fun CommentsScreen(
                     onDelete = { viewModel.deleteComment(publicacionId, comentario.id) }
                 )
             }
-
             if (state.isLoading) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
-            }
-        }
-
-        Divider()
-
-        // Campo de entrada de comentario
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = nuevoComentario,
-                onValueChange = { nuevoComentario = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
-                placeholder = { Text("Escribe un comentario...") },
-                maxLines = 3
-            )
-
-            IconButton(
-                onClick = {
-                    if (nuevoComentario.isNotEmpty()) {
-                        viewModel.addComment(publicacionId, nuevoComentario)
-                        nuevoComentario = ""
-                    }
-                },
-                enabled = nuevoComentario.isNotEmpty() && !state.estaEscribiendo
-            ) {
-                Icon(Icons.Default.Send, contentDescription = "Enviar comentario")
             }
         }
     }
