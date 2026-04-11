@@ -4,6 +4,8 @@ import com.hugodev.red_up.features.auth.domain.entities.AuthUser
 
 interface AuthRepository {
     suspend fun login(email: String, password: String): Result<AuthUser>
+    suspend fun requestPasswordReset(email: String): Result<String?>
+    suspend fun confirmPasswordReset(email: String, codigo: String, nuevaPassword: String): Result<Unit>
     suspend fun register(
         email: String,
         nombre: String,

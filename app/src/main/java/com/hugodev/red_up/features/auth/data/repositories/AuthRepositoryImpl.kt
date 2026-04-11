@@ -2,6 +2,8 @@ package com.hugodev.red_up.features.auth.data.repositories
 
 import com.hugodev.red_up.core.data.AuthPreferences
 import com.hugodev.red_up.features.auth.data.datasources.remote.api.AuthApi
+import com.hugodev.red_up.features.auth.data.datasources.remote.models.ForgotPasswordConfirmRequestDto
+import com.hugodev.red_up.features.auth.data.datasources.remote.models.ForgotPasswordRequestDto
 import com.hugodev.red_up.features.auth.data.datasources.remote.models.AuthLoginRequestDto
 import com.hugodev.red_up.features.auth.data.datasources.remote.models.AuthRegisterRequestDto
 import com.hugodev.red_up.features.auth.domain.entities.AuthUser
@@ -52,6 +54,28 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             )
             user.toDomain()
+        }
+    }
+
+    override suspend fun requestPasswordReset(email: String): Result<String?> {
+        return runCatching {
+            val response = authApi.requestPasswordReset(
+                ForgotPasswordRequestDto(correoInstitucional = email)
+            )
+            response.resetCode
+        }
+    }
+
+    override suspend fun confirmPasswordReset(email: String, codigo: String, nuevaPassword: String): Result<Unit> {
+        return runCatching {
+            authApi.confirmPasswordReset(
+                ForgotPasswordConfirmRequestDto(
+                    correoInstitucional = email,
+                    codigo = codigo,
+                    nuevaPassword = nuevaPassword
+                )
+            )
+            Unit
         }
     }
 
