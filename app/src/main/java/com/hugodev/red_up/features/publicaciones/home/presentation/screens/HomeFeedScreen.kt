@@ -37,7 +37,8 @@ fun HomeFeedScreen(
     onNavigateToLogin: () -> Unit = {},
     onNavigateToCreatePublication: () -> Unit = {},
     onNavigateToComments: (Long) -> Unit = {},
-    onNavigateToQrScanner: () -> Unit = {}
+    onNavigateToQrScanner: () -> Unit = {},
+    onNavigateToUserProfile: (Long) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -74,7 +75,11 @@ fun HomeFeedScreen(
             contentPadding = PaddingValues(16.dp)
         ) {
             items(uiState.publicaciones) { pub ->
-                PublicationCard(publication = pub, onCommentsClick = { onNavigateToComments(pub.id) })
+                PublicationCard(
+                    publication = pub,
+                    onCommentsClick = { onNavigateToComments(pub.id) },
+                    onAuthorClick = { onNavigateToUserProfile(pub.autorId) }
+                )
             }
         }
     }
@@ -91,10 +96,17 @@ fun HomeFeedScreen(
 }
 
 @Composable
-private fun PublicationCard(publication: Publications, onCommentsClick: () -> Unit) {
+private fun PublicationCard(
+    publication: Publications,
+    onCommentsClick: () -> Unit,
+    onAuthorClick: () -> Unit
+) {
     Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp), shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable(onClick = onAuthorClick)
+            ) {
                 Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
                     Box(contentAlignment = Alignment.Center) { Text(publication.autorNombre.take(1)) }
                 }
