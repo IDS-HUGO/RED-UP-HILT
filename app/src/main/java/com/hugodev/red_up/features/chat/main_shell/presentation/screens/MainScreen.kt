@@ -64,7 +64,22 @@ fun MainScreen(
     LaunchedEffect(Unit) {
         val activity = context as? Activity ?: return@LaunchedEffect
         val intent = activity.intent ?: return@LaunchedEffect
-        val targetType = intent.getStringExtra(NotificationDeepLink.KEY_TARGET_TYPE) ?: return@LaunchedEffect
+        val targetType = intent.getStringExtra(NotificationDeepLink.KEY_TARGET_TYPE)
+
+        val profileUserId = intent.getStringExtra(NotificationDeepLink.KEY_USER_ID)
+            ?.toLongOrNull()
+            ?: intent.getStringExtra(NotificationDeepLink.KEY_FOLLOWER_USER_ID)?.toLongOrNull()
+
+        if (targetType == NotificationDeepLink.TARGET_PROFILE && profileUserId != null && profileUserId > 0L) {
+            selectedItem = 2
+            navController.navigate(Screen.UserProfile.createRoute(profileUserId))
+        }
+
+        // Fallback para notificaciones sociales que solo envian follower_user_id
+        if (targetType.isNullOrBlank() && profileUserId != null && profileUserId > 0L) {
+            selectedItem = 2
+            navController.navigate(Screen.UserProfile.createRoute(profileUserId))
+        }
 
         if (targetType == NotificationDeepLink.TARGET_CHAT) {
             val roomId = intent.getStringExtra(NotificationDeepLink.KEY_ROOM_ID).orEmpty()
@@ -89,6 +104,8 @@ fun MainScreen(
         intent.removeExtra(NotificationDeepLink.KEY_ROOM_NAME)
         intent.removeExtra(NotificationDeepLink.KEY_ROOM_TYPE)
         intent.removeExtra(NotificationDeepLink.KEY_PUBLICATION_ID)
+        intent.removeExtra(NotificationDeepLink.KEY_USER_ID)
+        intent.removeExtra(NotificationDeepLink.KEY_FOLLOWER_USER_ID)
     }
 
     Scaffold(
