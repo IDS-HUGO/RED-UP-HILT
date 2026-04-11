@@ -7,6 +7,21 @@ data class AuthLoginRequestDto(
     @SerializedName("password") val password: String
 )
 
+data class ForgotPasswordRequestDto(
+    @SerializedName("correo_institucional") val correoInstitucional: String
+)
+
+data class ForgotPasswordConfirmRequestDto(
+    @SerializedName("correo_institucional") val correoInstitucional: String,
+    @SerializedName("codigo") val codigo: String,
+    @SerializedName("nueva_password") val nuevaPassword: String
+)
+
+data class ForgotPasswordResponseDto(
+    @SerializedName("message") val message: String,
+    @SerializedName("reset_code") val resetCode: String? = null
+)
+
 data class AuthRegisterRequestDto(
     @SerializedName("correo_institucional") val correoInstitucional: String,
     @SerializedName("nombre") val nombre: String,

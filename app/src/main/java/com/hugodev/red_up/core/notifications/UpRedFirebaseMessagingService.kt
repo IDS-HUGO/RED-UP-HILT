@@ -45,6 +45,8 @@ class UpRedFirebaseMessagingService : FirebaseMessagingService() {
             putExtra(NotificationDeepLink.KEY_ROOM_ID, remoteMessage.data[NotificationDeepLink.KEY_ROOM_ID])
             putExtra(NotificationDeepLink.KEY_ROOM_NAME, remoteMessage.data[NotificationDeepLink.KEY_ROOM_NAME])
             putExtra(NotificationDeepLink.KEY_ROOM_TYPE, remoteMessage.data[NotificationDeepLink.KEY_ROOM_TYPE])
+            putExtra(NotificationDeepLink.KEY_USER_ID, remoteMessage.data[NotificationDeepLink.KEY_USER_ID])
+            putExtra(NotificationDeepLink.KEY_FOLLOWER_USER_ID, remoteMessage.data[NotificationDeepLink.KEY_FOLLOWER_USER_ID])
             remoteMessage.data[NotificationDeepLink.KEY_PUBLICATION_ID]?.toLongOrNull()?.let {
                 putExtra(NotificationDeepLink.KEY_PUBLICATION_ID, it)
             }
