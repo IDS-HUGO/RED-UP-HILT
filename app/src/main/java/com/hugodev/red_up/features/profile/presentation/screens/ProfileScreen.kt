@@ -241,9 +241,32 @@ fun ProfileContent(
             Text(text = profile.carrera, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
         }
 
-        if (profile.biografia != null && profile.biografia.isNotEmpty()) {
+        if (!profile.biografia.isNullOrBlank() || !profile.telefono.isNullOrBlank()) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = profile.biografia, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (!profile.biografia.isNullOrBlank()) {
+                    Text(
+                        text = profile.biografia,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                if (!profile.telefono.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Telefono: ${profile.telefono}",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
