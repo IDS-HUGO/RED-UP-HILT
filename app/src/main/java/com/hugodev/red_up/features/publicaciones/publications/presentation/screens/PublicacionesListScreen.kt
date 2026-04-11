@@ -31,26 +31,13 @@ import coil.compose.AsyncImage
 import com.hugodev.red_up.features.publications.domain.entities.Publications
 import com.hugodev.red_up.features.publications.presentation.viewmodels.PublicacionesListViewModel
 
-// ── Colores del diseño ────────────────────────────────────────────────────────
-private val DarkBg = Color(0xFF1A1A1A)
-private val CardBg = Color.White
-private val TabSelected = Color.White
-private val TabUnselected = Color(0xFF888888)
-private val AccentRed = Color(0xFFE53935)
-private val TextPrimary = Color(0xFF111111)
-private val TextSecondary = Color(0xFF555555)
-private val TextMuted = Color(0xFF888888)
-private val TagEngineering = Color(0xFFE8F5E9)
-private val TagLaw = Color(0xFFFFF8E1)
-private val TagBusiness = Color(0xFFE3F2FD)
-private val TagText = Color(0xFF333333)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PublicacionesListScreen(
     onCreateClick: () -> Unit,
     viewModel: PublicacionesListViewModel = hiltViewModel()
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentUserId = uiState.currentUserId ?: 0L
     val tabs = listOf("Latest", "Top Rated", "Remote Only", "Internships")
@@ -77,7 +64,7 @@ fun PublicacionesListScreen(
                 TextButton(onClick = {
                     viewModel.deletePublicacion(pub.id)
                     publicacionAEliminar = null
-                }) { Text("Eliminar", color = AccentRed) }
+                }) { Text("Eliminar", color = colorScheme.error) }
             },
             dismissButton = {
                 TextButton(onClick = { publicacionAEliminar = null }) { Text("Cancelar") }
@@ -101,7 +88,7 @@ fun PublicacionesListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkBg)
+            .background(colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
@@ -109,12 +96,12 @@ fun PublicacionesListScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(DarkBg)
+                    .background(colorScheme.background)
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 Text(
                     text = "Red UP",
-                    color = Color.White,
+                    color = colorScheme.onBackground,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.Center)
@@ -124,8 +111,8 @@ fun PublicacionesListScreen(
             // ── Tabs ──────────────────────────────────────────────────────────
             ScrollableTabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = DarkBg,
-                contentColor = TabSelected,
+                containerColor = colorScheme.background,
+                contentColor = colorScheme.primary,
                 edgePadding = 0.dp
             ) {
                 tabs.forEachIndexed { index, title ->
@@ -135,7 +122,7 @@ fun PublicacionesListScreen(
                         text = {
                             Text(
                                 text = title,
-                                color = if (selectedTab == index) TabSelected else TabUnselected,
+                                color = if (selectedTab == index) colorScheme.primary else colorScheme.onSurfaceVariant,
                                 fontSize = 14.sp
                             )
                         }
@@ -147,7 +134,7 @@ fun PublicacionesListScreen(
             when {
                 uiState.isLoading -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = AccentRed)
+                        CircularProgressIndicator(color = colorScheme.primary)
                     }
                 }
                 uiState.error != null -> {
@@ -155,12 +142,12 @@ fun PublicacionesListScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = uiState.error ?: "",
-                                color = Color.White,
+                                color = colorScheme.onBackground,
                                 modifier = Modifier.padding(16.dp)
                             )
                             Button(
                                 onClick = { viewModel.loadPublicaciones() },
-                                colors = ButtonDefaults.buttonColors(containerColor = AccentRed)
+                                colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary)
                             ) { Text("Reintentar") }
                         }
                     }
@@ -195,8 +182,8 @@ fun PublicacionesListScreen(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp),
-            containerColor = AccentRed,
-            contentColor = Color.White
+            containerColor = colorScheme.primary,
+            contentColor = colorScheme.onPrimary
         ) {
             Icon(Icons.Default.Add, contentDescription = "Nueva publicación")
         }
@@ -211,13 +198,14 @@ fun PublicacionCard(
     onDeleteClick: () -> Unit,
     onEditClick: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     var liked by remember { mutableStateOf(false) }
     var likesCount by remember { mutableIntStateOf(publicacion.totalReacciones) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -256,24 +244,24 @@ fun PublicacionCard(
                             text = "${publicacion.autorNombre} ${publicacion.autorApellido}".trim(),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
-                            color = TextPrimary
+                            color = colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                     }
                     Text(
                         text = publicacion.publicadaEn,
                         fontSize = 12.sp,
-                        color = TextMuted
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
                 // Tag audiencia
                 if (publicacion.audiencia.isNotEmpty()) {
                     val tagColor = when (publicacion.audiencia.uppercase()) {
-                        "ENGINEERING" -> TagEngineering
-                        "LAW" -> TagLaw
-                        "BUSINESS" -> TagBusiness
-                        else -> Color(0xFFF5F5F5)
+                        "ENGINEERING" -> colorScheme.secondaryContainer
+                        "LAW" -> colorScheme.tertiaryContainer
+                        "BUSINESS" -> colorScheme.primaryContainer
+                        else -> colorScheme.surfaceVariant
                     }
                     Box(
                         modifier = Modifier
@@ -284,7 +272,7 @@ fun PublicacionCard(
                         Text(
                             text = publicacion.audiencia.uppercase(),
                             fontSize = 11.sp,
-                            color = TagText,
+                            color = colorScheme.onSurface,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -298,7 +286,7 @@ fun PublicacionCard(
                 text = publicacion.titulo,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
-                color = TextPrimary
+                color = colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -307,7 +295,7 @@ fun PublicacionCard(
             Text(
                 text = publicacion.contenido,
                 fontSize = 14.sp,
-                color = TextSecondary,
+                color = colorScheme.onSurfaceVariant,
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis
             )
@@ -343,14 +331,14 @@ fun PublicacionCard(
                     Icon(
                         imageVector = if (liked) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
                         contentDescription = "Like",
-                        tint = if (liked) AccentRed else TextMuted,
+                        tint = if (liked) colorScheme.primary else colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
                 Text(
                     text = likesCount.toString(),
                     fontSize = 13.sp,
-                    color = TextMuted,
+                    color = colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 2.dp)
                 )
 
@@ -360,13 +348,13 @@ fun PublicacionCard(
                 Icon(
                     imageVector = Icons.Default.ChatBubbleOutline,
                     contentDescription = "Comentarios",
-                    tint = TextMuted,
+                    tint = colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
                     text = publicacion.totalComentarios.toString(),
                     fontSize = 13.sp,
-                    color = TextMuted,
+                    color = colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp)
                 )
 
@@ -381,7 +369,7 @@ fun PublicacionCard(
                         Icon(
                             Icons.Default.Edit,
                             contentDescription = "Editar",
-                            tint = TextMuted,
+                            tint = colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -392,7 +380,7 @@ fun PublicacionCard(
                         Icon(
                             Icons.Default.Delete,
                             contentDescription = "Eliminar",
-                            tint = AccentRed,
+                            tint = colorScheme.error,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -404,7 +392,7 @@ fun PublicacionCard(
                         text = "Read more >",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
-                        color = TextPrimary
+                        color = colorScheme.onSurface
                     )
                 }
             }
@@ -423,9 +411,10 @@ fun EditarPublicacionDialog(
     var contenido by remember { mutableStateOf(publicacion.contenido) }
 
     Dialog(onDismissRequest = onDismiss) {
+        val colorScheme = MaterialTheme.colorScheme
         Card(
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
@@ -463,7 +452,7 @@ fun EditarPublicacionDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = { onConfirm(titulo, contenido) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentRed)
+                        colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary)
                     ) { Text("Guardar") }
                 }
             }
