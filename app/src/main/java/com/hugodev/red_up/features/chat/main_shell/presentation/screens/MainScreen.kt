@@ -124,7 +124,10 @@ fun MainScreen(
                     onNavigateToLogin = onNavigateToLogin,
                     onNavigateToCreatePublication = { navController.navigate(Screen.CreatePublicacion.route) },
                     onNavigateToComments = { id -> navController.navigate(Screen.Comments.createRoute(id)) },
-                    onNavigateToQrScanner = { navController.navigate(Screen.QrScanner.route) }
+                    onNavigateToQrScanner = { navController.navigate(Screen.QrScanner.route) },
+                    onNavigateToUserProfile = { userId ->
+                        navController.navigate(Screen.UserProfile.createRoute(userId))
+                    }
                 )
             }
 
