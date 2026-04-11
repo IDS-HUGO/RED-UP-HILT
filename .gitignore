@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Firebase local config (keep local, never commit)
+app/google-services.json
+*firebase-adminsdk*.json
