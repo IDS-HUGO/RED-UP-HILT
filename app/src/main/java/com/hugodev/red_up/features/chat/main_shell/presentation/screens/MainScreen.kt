@@ -1,5 +1,6 @@
 package com.hugodev.red_up.features.main.presentation.screens
 
+import android.app.Activity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -12,6 +13,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,13 +24,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.hugodev.red_up.core.notifications.NotificationDeepLink
 import com.hugodev.red_up.features.chat.presentation.screens.ChatsFeatureScreen
 import com.hugodev.red_up.features.individual_chat.presentation.screens.IndividualChatListScreen
 import com.hugodev.red_up.features.groups_chat.presentation.screens.GroupsChatListScreen
 import com.hugodev.red_up.features.home.presentation.screens.HomeFeedScreen
 import com.hugodev.red_up.features.publicaciones.comments.presentation.screens.CommentsScreen
 import com.hugodev.red_up.features.publicaciones.comments.presentation.viewmodels.CommentsViewModel
+import com.hugodev.red_up.features.sync.presentation.screens.SyncStatusScreen
 import com.hugodev.red_up.features.profile.presentation.screens.EditProfileScreen
 import com.hugodev.red_up.features.profile.presentation.screens.MyProfileScreen
 import com.hugodev.red_up.features.profile.presentation.screens.UserProfileScreen
@@ -54,6 +59,37 @@ fun MainScreen(
 ) {
     var selectedItem by remember { mutableStateOf(0) }
     val navItems = BottomNavItem.values()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        val activity = context as? Activity ?: return@LaunchedEffect
+        val intent = activity.intent ?: return@LaunchedEffect
+        val targetType = intent.getStringExtra(NotificationDeepLink.KEY_TARGET_TYPE) ?: return@LaunchedEffect
+
+        if (targetType == NotificationDeepLink.TARGET_CHAT) {
+            val roomId = intent.getStringExtra(NotificationDeepLink.KEY_ROOM_ID).orEmpty()
+            if (roomId.isNotBlank()) {
+                val roomName = intent.getStringExtra(NotificationDeepLink.KEY_ROOM_NAME) ?: "Chat"
+                val roomType = intent.getStringExtra(NotificationDeepLink.KEY_ROOM_TYPE) ?: "individual"
+                selectedItem = 1
+                navController.navigate(Screen.Chat.createRoute(roomId, roomName, roomType))
+            }
+        }
+
+        if (targetType == NotificationDeepLink.TARGET_PUBLICATION) {
+            val publicationId = intent.getLongExtra(NotificationDeepLink.KEY_PUBLICATION_ID, -1L)
+            if (publicationId > 0L) {
+                selectedItem = 0
+                navController.navigate(Screen.Comments.createRoute(publicationId))
+            }
+        }
+
+        intent.removeExtra(NotificationDeepLink.KEY_TARGET_TYPE)
+        intent.removeExtra(NotificationDeepLink.KEY_ROOM_ID)
+        intent.removeExtra(NotificationDeepLink.KEY_ROOM_NAME)
+        intent.removeExtra(NotificationDeepLink.KEY_ROOM_TYPE)
+        intent.removeExtra(NotificationDeepLink.KEY_PUBLICATION_ID)
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -121,7 +157,16 @@ fun MainScreen(
 
             composable(Screen.Profile.route) {
                 selectedItem = 2
-                MyProfileScreen(viewModel = hiltViewModel(), onNavigateBack = {}, onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) })
+                MyProfileScreen(
+                    viewModel = hiltViewModel(),
+                    onNavigateBack = {},
+                    onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
+                    onNavigateToSyncStatus = { navController.navigate(Screen.SyncStatus.route) }
+                )
+            }
+
+            composable(Screen.SyncStatus.route) {
+                SyncStatusScreen(onBackClick = { navController.popBackStack() })
             }
 
             composable(Screen.EditProfile.route) {

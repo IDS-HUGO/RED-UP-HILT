@@ -1,13 +1,16 @@
 package com.hugodev.red_up.features.chat.presentation.viewmodels
 
 import android.util.Log
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.core.data.AuthPreferences
 import com.hugodev.red_up.features.chat.data.repositories.SocketIoChatRepository
 import com.hugodev.red_up.features.chat.domain.entities.ChatMessage
+import com.hugodev.red_up.core.sync.SyncEventStore
 import com.hugodev.red_up.features.chat.domain.usecases.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -37,6 +40,7 @@ class ChatViewModel @Inject constructor(
     private val joinDirectChatUseCase: JoinDirectChatUseCase,
     private val observeJoinedRoomUseCase: ObserveJoinedRoomUseCase,
     private val socketIoChatRepository: SocketIoChatRepository,
+    @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -138,6 +142,17 @@ class ChatViewModel @Inject constructor(
             _uiState.update { it.copy(newMessage = "", pendingMessages = it.pendingMessages + message) }
         } else {
             sendChatMessageUseCase(message)
+            viewModelScope.launch {
+                SyncEventStore.queueEvent(
+                    context = appContext,
+                    eventType = "chat_message_sent",
+                    payload = mapOf(
+                        "room_id" to (state.currentRoomId ?: ""),
+                        "room_type" to (state.currentRoomType ?: "individual"),
+                        "timestamp" to System.currentTimeMillis()
+                    )
+                )
+            }
             _uiState.update { it.copy(newMessage = "") }
         }
     }

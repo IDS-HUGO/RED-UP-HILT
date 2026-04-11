@@ -3,6 +3,7 @@ package com.hugodev.red_up.core.di
 import android.content.Context
 import androidx.room.Room
 import com.hugodev.red_up.core.data.local.AppDatabase
+import com.hugodev.red_up.core.data.local.SyncDao
 import com.hugodev.red_up.features.publications.data.datasources.local.PublicationDao
 import dagger.Module
 import dagger.Provides
@@ -29,5 +30,11 @@ object LocalDatabaseModule {
     @Singleton
     fun providePublicationDao(database: AppDatabase): PublicationDao {
         return database.publicationDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSyncDao(database: AppDatabase): SyncDao {
+        return database.syncDao()
     }
 }

@@ -3,9 +3,14 @@ package com.hugodev.red_up.features.publications.data.datasources.remote.api
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.ApiMessageDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.CommentDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.CreateCommentRequestDto
+import com.hugodev.red_up.features.publications.data.datasources.remote.models.DeviceRegistrationRequestDto
+import com.hugodev.red_up.features.publications.data.datasources.remote.models.DeviceTokenUpdateRequestDto
+import com.hugodev.red_up.features.publications.data.datasources.remote.models.NotificationConfigDto
+import com.hugodev.red_up.features.publications.data.datasources.remote.models.NotificationSummaryDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.CreatePublicationRequestDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.ProfileDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.PublicationDto
+import com.hugodev.red_up.features.publications.data.datasources.remote.models.SyncEventsRequestDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.UpdateProfileRequestDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.UserStatsDto
 import okhttp3.MultipartBody
@@ -67,4 +72,22 @@ interface UpRedApi {
 
     @DELETE("api/usuarios/{usuarioId}/seguir")
     suspend fun unfollowUser(@Path("usuarioId") usuarioId: Long): ApiMessageDto
+
+    @POST("api/notificaciones/dispositivos")
+    suspend fun registerDevice(@Body request: DeviceRegistrationRequestDto): ApiMessageDto
+
+    @PUT("api/notificaciones/dispositivos/token")
+    suspend fun updateDeviceToken(@Body request: DeviceTokenUpdateRequestDto): ApiMessageDto
+
+    @GET("api/notificaciones/configuracion")
+    suspend fun getNotificationConfig(): NotificationConfigDto
+
+    @PUT("api/notificaciones/configuracion")
+    suspend fun updateNotificationConfig(@Body config: NotificationConfigDto): NotificationConfigDto
+
+    @POST("api/notificaciones/eventos/sync")
+    suspend fun syncDeferredEvents(@Body request: SyncEventsRequestDto): ApiMessageDto
+
+    @GET("api/notificaciones/resumen")
+    suspend fun getNotificationSummary(): NotificationSummaryDto
 }

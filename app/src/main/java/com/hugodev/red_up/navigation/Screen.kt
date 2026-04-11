@@ -44,6 +44,9 @@ sealed class Screen(val route: String) {
     // QR Scanner
     object QrScanner : Screen("qr_scanner")
 
+    // Sync status and diagnostics
+    object SyncStatus : Screen("sync_status")
+
     // Perfil de otro usuario
     object UserProfile : Screen("user_profile/{userId}") {
         fun createRoute(userId: Long) = "user_profile/$userId"
