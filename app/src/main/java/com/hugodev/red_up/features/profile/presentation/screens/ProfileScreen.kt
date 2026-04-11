@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,7 +31,8 @@ import com.hugodev.red_up.features.profile.presentation.viewmodels.ProfileUiStat
 fun MyProfileScreen(
     viewModel: ProfileViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToEditProfile: () -> Unit
+    onNavigateToEditProfile: () -> Unit,
+    onNavigateToSyncStatus: () -> Unit
 ) {
     val state by viewModel.profileState.collectAsState()
     var showQrDialog by remember { mutableStateOf(false) }
@@ -65,6 +67,9 @@ fun MyProfileScreen(
                 // BOTÓN PARA MOSTRAR QR
                 IconButton(onClick = { showQrDialog = true }) {
                     Icon(Icons.Default.QrCode, contentDescription = "Mostrar QR")
+                }
+                IconButton(onClick = onNavigateToSyncStatus) {
+                    Icon(Icons.Default.Sync, contentDescription = "Estado de sincronizacion")
                 }
                 IconButton(onClick = onNavigateToEditProfile) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar perfil")

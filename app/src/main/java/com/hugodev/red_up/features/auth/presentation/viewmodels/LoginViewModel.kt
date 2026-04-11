@@ -2,9 +2,13 @@ package com.hugodev.red_up.features.auth.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
 import com.hugodev.red_up.core.security.BiometricCredentialStore
+import com.hugodev.red_up.core.sync.SyncEventStore
+import com.hugodev.red_up.core.sync.SyncWork
 import com.hugodev.red_up.features.auth.domain.usecases.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +27,8 @@ data class LoginUiState(
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-    private val biometricCredentialStore: BiometricCredentialStore
+    private val biometricCredentialStore: BiometricCredentialStore,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -83,6 +88,17 @@ class LoginViewModel @Inject constructor(
                     if (saveForBiometric) {
                         biometricCredentialStore.saveCredentials(email, password)
                     }
+                    viewModelScope.launch {
+                        SyncEventStore.queueEvent(
+                            context = appContext,
+                            eventType = "session_login_success",
+                            payload = mapOf(
+                                "login_mode" to if (saveForBiometric) "password" else "biometric",
+                                "timestamp" to System.currentTimeMillis()
+                            )
+                        )
+                    }
+                    SyncWork.enqueueTokenSync(appContext)
                     _uiState.value = state.copy(
                         email = email,
                         password = password,

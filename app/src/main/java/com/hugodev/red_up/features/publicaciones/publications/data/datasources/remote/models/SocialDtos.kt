@@ -61,3 +61,37 @@ data class UpdateProfileRequestDto(
     @SerializedName("biografia") val biografia: String? = null,
     @SerializedName("telefono") val telefono: String? = null
 )
+
+data class DeviceRegistrationRequestDto(
+    @SerializedName("uuid_dispositivo") val uuidDispositivo: String,
+    @SerializedName("plataforma") val plataforma: String = "android",
+    @SerializedName("token_push") val tokenPush: String? = null
+)
+
+data class DeviceTokenUpdateRequestDto(
+    @SerializedName("uuid_dispositivo") val uuidDispositivo: String,
+    @SerializedName("token_push") val tokenPush: String
+)
+
+data class NotificationConfigDto(
+    @SerializedName("push_enabled") val pushEnabled: Boolean = true,
+    @SerializedName("chat_enabled") val chatEnabled: Boolean = true,
+    @SerializedName("groups_enabled") val groupsEnabled: Boolean = true,
+    @SerializedName("social_enabled") val socialEnabled: Boolean = true,
+    @SerializedName("updated_at") val updatedAt: String? = null
+)
+
+data class NotificationSummaryDto(
+    @SerializedName("total_no_leidas") val totalNoLeidas: Int = 0,
+    @SerializedName("last_notification_at") val lastNotificationAt: String? = null
+)
+
+data class SyncEventDto(
+    @SerializedName("event_type") val eventType: String,
+    @SerializedName("payload") val payload: Map<String, Any?> = emptyMap(),
+    @SerializedName("created_at") val createdAt: Long
+)
+
+data class SyncEventsRequestDto(
+    @SerializedName("events") val events: List<SyncEventDto>
+)
