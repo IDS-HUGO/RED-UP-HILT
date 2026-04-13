@@ -32,7 +32,8 @@ fun MyProfileScreen(
     viewModel: ProfileViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
-    onNavigateToSyncStatus: () -> Unit
+    onNavigateToSyncStatus: () -> Unit,
+    onNavigateToNotificationCenter: () -> Unit
 ) {
     val state by viewModel.profileState.collectAsState()
     var showQrDialog by remember { mutableStateOf(false) }
@@ -67,6 +68,9 @@ fun MyProfileScreen(
                 // BOTÓN PARA MOSTRAR QR
                 IconButton(onClick = { showQrDialog = true }) {
                     Icon(Icons.Default.QrCode, contentDescription = "Mostrar QR")
+                }
+                IconButton(onClick = onNavigateToNotificationCenter) {
+                    Icon(Icons.Default.Notifications, contentDescription = "Centro de notificaciones")
                 }
                 IconButton(onClick = onNavigateToSyncStatus) {
                     Icon(Icons.Default.Sync, contentDescription = "Estado de sincronizacion")

@@ -205,9 +205,11 @@ fun RegisterScreen(
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
+                        isError = uiState.nombreError != null,
+                        supportingText = uiState.nombreError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            focusedBorderColor = if (uiState.nombreError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = if (uiState.nombreError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
                     )
 
@@ -226,9 +228,11 @@ fun RegisterScreen(
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
+                        isError = uiState.apellidoPaternoError != null,
+                        supportingText = uiState.apellidoPaternoError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            focusedBorderColor = if (uiState.apellidoPaternoError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = if (uiState.apellidoPaternoError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
                     )
 
@@ -268,9 +272,11 @@ fun RegisterScreen(
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
+                        isError = uiState.correoError != null,
+                        supportingText = uiState.correoError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            focusedBorderColor = if (uiState.correoError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = if (uiState.correoError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
                     )
 
@@ -304,9 +310,11 @@ fun RegisterScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
+                        isError = uiState.fechaNacimientoError != null,
+                        supportingText = uiState.fechaNacimientoError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            focusedBorderColor = if (uiState.fechaNacimientoError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = if (uiState.fechaNacimientoError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
                     )
 
@@ -342,14 +350,16 @@ fun RegisterScreen(
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
+                        isError = uiState.passwordError != null,
+                        supportingText = uiState.passwordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            focusedBorderColor = if (uiState.passwordError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = if (uiState.passwordError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
                     )
 
                     Text(
-                        text = "Debe tener al menos 8 caracteres",
+                        text = "Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -379,9 +389,11 @@ fun RegisterScreen(
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
+                        isError = uiState.confirmPasswordError != null,
+                        supportingText = uiState.confirmPasswordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                            focusedBorderColor = if (uiState.confirmPasswordError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = if (uiState.confirmPasswordError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
                     )
 

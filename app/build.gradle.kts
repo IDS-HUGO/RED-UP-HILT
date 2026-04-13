@@ -11,15 +11,16 @@ plugins {
 
 android {
     namespace = "com.hugodev.red_up"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.hugodev.red_up"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -28,10 +29,18 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -82,6 +91,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.multidex)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
     ksp(libs.hilt.compiler)

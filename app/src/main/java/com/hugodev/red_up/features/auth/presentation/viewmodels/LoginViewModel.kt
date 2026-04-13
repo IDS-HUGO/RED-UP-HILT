@@ -20,10 +20,13 @@ import kotlinx.coroutines.launch
 data class LoginUiState(
     val email: String = "",
     val password: String = "",
+    val rememberMe: Boolean = false,
     val hasBiometricCredentials: Boolean = false,
     val isLoading: Boolean = false,
     val isForgotLoading: Boolean = false,
     val error: String? = null,
+    val emailError: String? = null,
+    val passwordError: String? = null,
     val forgotMessage: String? = null,
     val forgotDebugCode: String? = null,
     val isSuccess: Boolean = false
@@ -44,24 +47,54 @@ class LoginViewModel @Inject constructor(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(value: String) {
-        _uiState.value = _uiState.value.copy(email = value, error = null)
+        _uiState.value = _uiState.value.copy(email = value, error = null, emailError = null)
     }
 
     fun onPasswordChange(value: String) {
-        _uiState.value = _uiState.value.copy(password = value, error = null)
+        _uiState.value = _uiState.value.copy(password = value, error = null, passwordError = null)
+    }
+
+    fun onRememberMeChange(value: Boolean) {
+        _uiState.value = _uiState.value.copy(rememberMe = value)
+    }
+
+    private fun validateFields(): Boolean {
+        val state = _uiState.value
+        var isValid = true
+        var emailError: String? = null
+        var passwordError: String? = null
+
+        if (state.email.isBlank()) {
+            emailError = "El correo electrónico es obligatorio"
+            isValid = false
+        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) {
+            emailError = "Ingresa un correo electrónico válido"
+            isValid = false
+        }
+
+        if (state.password.isBlank()) {
+            passwordError = "La contraseña es obligatoria"
+            isValid = false
+        } else if (state.password.length < 6) {
+            passwordError = "La contraseña debe tener al menos 6 caracteres"
+            isValid = false
+        }
+
+        _uiState.value = state.copy(emailError = emailError, passwordError = passwordError)
+        return isValid
     }
 
     fun login() {
-        val state = _uiState.value
-        if (state.email.isBlank() || state.password.isBlank()) {
-            _uiState.value = state.copy(error = "Completa tu correo y contrasena")
+        if (!validateFields()) {
             return
         }
 
+        val state = _uiState.value
         loginInternal(
             email = state.email.trim(),
             password = state.password,
-            saveForBiometric = true
+            saveForBiometric = true,
+            rememberMe = state.rememberMe
         )
     }
 
@@ -85,14 +118,15 @@ class LoginViewModel @Inject constructor(
     private fun loginInternal(
         email: String,
         password: String,
-        saveForBiometric: Boolean
+        saveForBiometric: Boolean,
+        rememberMe: Boolean = false
     ) {
         val state = _uiState.value
         viewModelScope.launch {
             _uiState.value = state.copy(isLoading = true, error = null)
             loginUseCase(email, password).fold(
                 onSuccess = {
-                    if (saveForBiometric) {
+                    if (saveForBiometric || rememberMe) {
                         biometricCredentialStore.saveCredentials(email, password)
                     }
                     viewModelScope.launch {
@@ -100,7 +134,7 @@ class LoginViewModel @Inject constructor(
                             context = appContext,
                             eventType = "session_login_success",
                             payload = mapOf(
-                                "login_mode" to if (saveForBiometric) "password" else "biometric",
+                                "login_mode" to if (saveForBiometric) "password" else if (rememberMe) "remembered" else "biometric",
                                 "timestamp" to System.currentTimeMillis()
                             )
                         )
@@ -115,9 +149,19 @@ class LoginViewModel @Inject constructor(
                     )
                 },
                 onFailure = { throwable ->
+                    val errorMessage = when {
+                        throwable.message?.contains("network", ignoreCase = true) == true ||
+                        throwable.message?.contains("connection", ignoreCase = true) == true -> 
+                            "Error de conexión. Verifica tu internet e intenta de nuevo."
+                        throwable.message?.contains("401", ignoreCase = true) == true ||
+                        throwable.message?.contains("invalid", ignoreCase = true) == true ||
+                        throwable.message?.contains("credentials", ignoreCase = true) == true ->
+                            "Correo o contraseña incorrectos. Verifica tus datos."
+                        else -> throwable.message ?: "No se pudo iniciar sesión"
+                    }
                     _uiState.value = state.copy(
                         isLoading = false,
-                        error = throwable.message ?: "No se pudo iniciar sesion"
+                        error = errorMessage
                     )
                 }
             )

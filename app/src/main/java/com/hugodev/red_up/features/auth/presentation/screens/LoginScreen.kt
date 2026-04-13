@@ -32,7 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -243,9 +243,11 @@ fun LoginScreen(
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
+                isError = uiState.emailError != null,
+                supportingText = uiState.emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    focusedBorderColor = if (uiState.emailError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = if (uiState.emailError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 )
             )
 
@@ -285,11 +287,32 @@ fun LoginScreen(
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
+                isError = uiState.passwordError != null,
+                supportingText = uiState.passwordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    focusedBorderColor = if (uiState.passwordError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = if (uiState.passwordError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 )
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Remember me checkbox
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = uiState.rememberMe,
+                    onCheckedChange = viewModel::onRememberMeChange
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Recordar sesión",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

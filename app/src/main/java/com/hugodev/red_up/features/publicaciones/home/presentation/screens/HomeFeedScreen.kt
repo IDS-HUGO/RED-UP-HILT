@@ -69,17 +69,88 @@ fun HomeFeedScreen(
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(16.dp)
-        ) {
-            items(uiState.publicaciones) { pub ->
-                PublicationCard(
-                    publication = pub,
-                    onCommentsClick = { onNavigateToComments(pub.id) },
-                    onAuthorClick = { onNavigateToUserProfile(pub.autorId) }
-                )
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            when {
+                uiState.isLoading && uiState.publicaciones.isEmpty() -> {
+                    // Loading state
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Cargando publicaciones...", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                uiState.error != null && uiState.publicaciones.isEmpty() -> {
+                    // Error state with retry
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.Error,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            uiState.error ?: "Error desconocido",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { viewModel.loadFeed() }) {
+                            Text("Reintentar")
+                        }
+                    }
+                }
+                uiState.publicaciones.isEmpty() && !uiState.isLoading -> {
+                    // Empty state
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.Article,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "No hay publicaciones aún",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "Sé el primero en compartir algo",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                else -> {
+                    // Content
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(uiState.publicaciones) { pub ->
+                            PublicationCard(
+                                publication = pub,
+                                onCommentsClick = { onNavigateToComments(pub.id) },
+                                onAuthorClick = { onNavigateToUserProfile(pub.autorId) }
+                            )
+                        }
+                    }
+                }
             }
         }
     }

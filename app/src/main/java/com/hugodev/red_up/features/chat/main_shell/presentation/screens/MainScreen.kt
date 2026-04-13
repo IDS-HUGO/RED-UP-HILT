@@ -44,6 +44,8 @@ import com.hugodev.red_up.features.groups.presentation.screens.GroupDetailScreen
 import com.hugodev.red_up.features.groups.presentation.screens.InviteMembersScreen
 import com.hugodev.red_up.features.chat.presentation.screens.ChatScreen
 import com.hugodev.red_up.features.qr.QrScannerScreen
+import com.hugodev.red_up.features.notifications.presentation.screens.NotificationCenterScreen
+import com.hugodev.red_up.features.notifications.presentation.screens.NotificationSettingsScreen
 import com.hugodev.red_up.navigation.Screen
 
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
@@ -181,7 +183,8 @@ fun MainScreen(
                     viewModel = hiltViewModel(),
                     onNavigateBack = {},
                     onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
-                    onNavigateToSyncStatus = { navController.navigate(Screen.SyncStatus.route) }
+                    onNavigateToSyncStatus = { navController.navigate(Screen.SyncStatus.route) },
+                    onNavigateToNotificationCenter = { navController.navigate(Screen.NotificationCenter.route) }
                 )
             }
 
@@ -265,6 +268,42 @@ fun MainScreen(
                             }
                         }
                     }
+                )
+            }
+
+            // Notification Center
+            composable(Screen.NotificationCenter.route) {
+                NotificationCenterScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onSettingsClick = { navController.navigate(Screen.NotificationSettings.route) },
+                    onNotificationClick = { notification ->
+                        // Handle deep link based on notification type
+                        when (notification.type) {
+                            "chat" -> {
+                                notification.actionUrl?.let { url ->
+                                    // Parse roomId, name, type from url
+                                    navController.navigate(url)
+                                }
+                            }
+                            "publication" -> {
+                                notification.actionUrl?.let { url ->
+                                    navController.navigate(url)
+                                }
+                            }
+                            "profile" -> {
+                                notification.senderId?.let { userId ->
+                                    navController.navigate(Screen.UserProfile.createRoute(userId))
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
+            // Notification Settings
+            composable(Screen.NotificationSettings.route) {
+                NotificationSettingsScreen(
+                    onBackClick = { navController.popBackStack() }
                 )
             }
         }
