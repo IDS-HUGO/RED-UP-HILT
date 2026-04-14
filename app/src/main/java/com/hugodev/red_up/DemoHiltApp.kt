@@ -23,7 +23,9 @@ class DemoHiltApp : Application() {
 			.addOnSuccessListener { token ->
 				Log.d("FCMTokenInit", "FCM token fetched on app start")
 				CoroutineScope(Dispatchers.IO).launch {
-					AuthPreferences(applicationContext).saveFcmToken(token)
+					val authPreferences = AuthPreferences(applicationContext)
+					authPreferences.saveFcmToken(token)
+					SyncWork.enqueueTokenSync(applicationContext)
 				}
 			}
 			.addOnFailureListener { error ->

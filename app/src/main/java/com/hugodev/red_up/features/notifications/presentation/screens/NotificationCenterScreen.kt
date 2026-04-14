@@ -66,7 +66,7 @@ private fun NotificationItem(notification: NotificationItem) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(notification.title, style = MaterialTheme.typography.titleMedium)
             Text(notification.message, style = MaterialTheme.typography.bodyMedium)
-            Text(notification.timestamp.toString(), style = MaterialTheme.typography.labelSmall)
+            Text(notification.timestamp, style = MaterialTheme.typography.labelSmall)
         }
     }
 }

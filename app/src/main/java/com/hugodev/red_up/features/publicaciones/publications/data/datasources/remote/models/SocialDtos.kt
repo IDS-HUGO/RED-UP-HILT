@@ -87,6 +87,15 @@ data class NotificationSummaryDto(
     @SerializedName("last_notification_at") val lastNotificationAt: String? = null
 )
 
+data class NotificationDto(
+    @SerializedName("id") val id: Long,
+    @SerializedName("tipo") val tipo: String,
+    @SerializedName("titulo") val titulo: String,
+    @SerializedName("cuerpo") val cuerpo: String? = null,
+    @SerializedName("leida") val leida: Boolean = false,
+    @SerializedName("creada_en") val creadaEn: String? = null
+)
+
 data class SyncEventDto(
     @SerializedName("event_type") val eventType: String,
     @SerializedName("payload") val payload: Map<String, Any?> = emptyMap(),

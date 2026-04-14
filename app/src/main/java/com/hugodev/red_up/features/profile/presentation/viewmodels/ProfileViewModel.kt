@@ -99,38 +99,18 @@ class ProfileViewModel @Inject constructor(
                 // Cargamos siempre stats (lo más probable que exista)
                 val stats = upRedApi.getUserStats(userId)
 
-                // Intentamos cargar el perfil completo, pero si falla,
-                // construimos un perfil mínimo a partir de las stats.
-                val profile = try {
-                    upRedApi.getUserProfile(userId)
-                } catch (e: Exception) {
-                    null
-                }
-
-                val userProfile = profile?.let {
-                    UserProfile(
-                        id = it.id,
-                        nombre = it.nombre,
-                        apellidoPaterno = it.apellidoPaterno,
-                        apellidoMaterno = it.apellidoMaterno.orEmpty(),
-                        correoInstitucional = it.correoInstitucional,
-                        fotoPerfil = it.fotoPerfilUrl,
-                        biografia = it.biografia,
-                        telefono = it.telefono,
-                        carrera = it.carrera?.nombre,
-                        cuatrimestre = it.cuatrimestre?.numero
-                    )
-                } ?: UserProfile(
-                    id = userId,
-                    nombre = "Usuario $userId",
-                    apellidoPaterno = "",
-                    apellidoMaterno = "",
-                    correoInstitucional = "",
-                    fotoPerfil = null,
-                    biografia = null,
-                    telefono = null,
-                    carrera = null,
-                    cuatrimestre = null
+                val profile = upRedApi.getUserProfile(userId)
+                val userProfile = UserProfile(
+                    id = profile.id,
+                    nombre = profile.nombre,
+                    apellidoPaterno = profile.apellidoPaterno,
+                    apellidoMaterno = profile.apellidoMaterno.orEmpty(),
+                    correoInstitucional = profile.correoInstitucional,
+                    fotoPerfil = profile.fotoPerfilUrl,
+                    biografia = profile.biografia,
+                    telefono = profile.telefono,
+                    carrera = profile.carrera?.nombre,
+                    cuatrimestre = profile.cuatrimestre?.numero
                 )
 
                 _profileState.value = _profileState.value.copy(

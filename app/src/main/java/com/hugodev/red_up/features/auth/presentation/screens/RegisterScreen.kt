@@ -1,6 +1,8 @@
 package com.hugodev.red_up.features.auth.presentation.screens
 
+import android.Manifest
 import android.net.Uri
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -71,6 +73,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
@@ -89,6 +92,7 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var currentPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    var localCameraError by remember { mutableStateOf<String?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture(),
@@ -106,7 +110,7 @@ fun RegisterScreen(
         }
     )
 
-    fun launchCamera() {
+    val launchCamera: () -> Unit = {
         val photoFile = File(context.externalCacheDir ?: context.cacheDir, "profile_${System.currentTimeMillis()}.jpg")
         currentPhotoUri = FileProvider.getUriForFile(
             context,
@@ -119,8 +123,31 @@ fun RegisterScreen(
         }
     }
 
-    fun launchGallery() {
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if (granted) {
+                launchCamera()
+            } else {
+                localCameraError = "Permiso de camara denegado"
+            }
+        }
+    )
+
+    val launchGallery: () -> Unit = {
         galleryLauncher.launch("image/*")
+    }
+
+    val handleCameraClick: () -> Unit = {
+        val hasCameraPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+        if (hasCameraPermission) {
+            launchCamera()
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
     }
 
     LaunchedEffect(uiState.isSuccess) {
@@ -399,7 +426,7 @@ fun RegisterScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Button(
-                                onClick = { launchCamera() },
+                                onClick = { handleCameraClick() },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -519,6 +546,22 @@ fun RegisterScreen(
                         ) {
                             Text(
                                 text = uiState.error.orEmpty(),
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+                    if (!localCameraError.isNullOrBlank()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = localCameraError.orEmpty(),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall,
                                 modifier = Modifier.padding(12.dp)
