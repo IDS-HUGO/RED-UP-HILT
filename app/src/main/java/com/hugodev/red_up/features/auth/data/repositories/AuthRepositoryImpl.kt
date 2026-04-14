@@ -2,13 +2,16 @@ package com.hugodev.red_up.features.auth.data.repositories
 
 import com.hugodev.red_up.core.data.AuthPreferences
 import com.hugodev.red_up.features.auth.data.datasources.remote.api.AuthApi
+import com.hugodev.red_up.features.auth.data.datasources.remote.models.AuthLoginRequestDto
 import com.hugodev.red_up.features.auth.data.datasources.remote.models.ForgotPasswordConfirmRequestDto
 import com.hugodev.red_up.features.auth.data.datasources.remote.models.ForgotPasswordRequestDto
-import com.hugodev.red_up.features.auth.data.datasources.remote.models.AuthLoginRequestDto
-import com.hugodev.red_up.features.auth.data.datasources.remote.models.AuthRegisterRequestDto
 import com.hugodev.red_up.features.auth.domain.entities.AuthUser
 import com.hugodev.red_up.features.auth.domain.repositories.AuthRepository
 import javax.inject.Inject
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
@@ -40,20 +43,18 @@ class AuthRepositoryImpl @Inject constructor(
         apellidoPaterno: String,
         apellidoMaterno: String?,
         fechaNacimiento: String,
-        fotoUrl: String?,
+        fotoPerfil: MultipartBody.Part?,
         password: String
     ): Result<AuthUser> {
         return runCatching {
             val user = authApi.register(
-                AuthRegisterRequestDto(
-                    correoInstitucional = email,
-                    nombre = nombre,
-                    apellidoPaterno = apellidoPaterno,
-                    apellidoMaterno = apellidoMaterno,
-                    fechaNacimiento = fechaNacimiento,
-                    fotoPerfilUrl = fotoUrl,
-                    password = password
-                )
+                correoInstitucional = email.toRequestBody("text/plain".toMediaType()),
+                nombre = nombre.toRequestBody("text/plain".toMediaType()),
+                apellidoPaterno = apellidoPaterno.toRequestBody("text/plain".toMediaType()),
+                apellidoMaterno = apellidoMaterno?.toRequestBody("text/plain".toMediaType()),
+                fechaNacimiento = fechaNacimiento.toRequestBody("text/plain".toMediaType()),
+                password = password.toRequestBody("text/plain".toMediaType()),
+                fotoPerfil = fotoPerfil
             )
             user.toDomain()
         }

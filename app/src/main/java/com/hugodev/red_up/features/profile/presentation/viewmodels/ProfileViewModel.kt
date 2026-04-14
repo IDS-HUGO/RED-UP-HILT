@@ -4,12 +4,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.features.publications.data.datasources.remote.api.UpRedApi
-import com.hugodev.red_up.features.publications.data.datasources.remote.models.UpdateProfileRequestDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class UserProfile(
     val id: Long,
@@ -197,11 +199,15 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(biography: String?, telefono: String?, fotoUrl: String?) {
+    fun updateProfile(biography: String?, telefono: String?, fotoPart: MultipartBody.Part?) {
         viewModelScope.launch {
             _profileState.value = _profileState.value.copy(isLoading = true)
             try {
-                val updated = upRedApi.updateCurrentProfile(UpdateProfileRequestDto(biografia = biography, telefono = telefono, fotoPerfilUrl = fotoUrl))
+                val updated = upRedApi.updateCurrentProfile(
+                    biografia = biography?.toRequestBody("text/plain".toMediaType()),
+                    telefono = telefono?.toRequestBody("text/plain".toMediaType()),
+                    fotoPerfil = fotoPart
+                )
                 _profileState.value = _profileState.value.copy(
                     userProfile = _profileState.value.userProfile?.copy(
                         nombre = updated.nombre,

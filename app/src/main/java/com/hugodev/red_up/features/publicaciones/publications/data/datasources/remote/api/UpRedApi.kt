@@ -64,8 +64,13 @@ interface UpRedApi {
     @GET("api/usuarios/{usuarioId}/stats")
     suspend fun getUserStats(@Path("usuarioId") usuarioId: Long): UserStatsDto
 
+    @Multipart
     @PUT("api/usuarios/perfil/actualizar")
-    suspend fun updateCurrentProfile(@Body request: UpdateProfileRequestDto): ProfileDto
+    suspend fun updateCurrentProfile(
+        @Part("biografia") biografia: RequestBody? = null,
+        @Part("telefono") telefono: RequestBody? = null,
+        @Part fotoPerfil: MultipartBody.Part? = null
+    ): ProfileDto
 
     @POST("api/usuarios/{usuarioId}/seguir")
     suspend fun followUser(@Path("usuarioId") usuarioId: Long): ApiMessageDto

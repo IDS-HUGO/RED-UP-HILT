@@ -177,10 +177,12 @@ fun MainScreen(
                 )
             }
 
-            composable(Screen.Profile.route) {
+            composable(Screen.Profile.route) { backStackEntry ->
                 selectedItem = 2
+                val profileEntry = remember(backStackEntry) { navController.getBackStackEntry(Screen.Profile.route) }
+                val profileViewModel: ProfileViewModel = hiltViewModel(profileEntry)
                 MyProfileScreen(
-                    viewModel = hiltViewModel(),
+                    viewModel = profileViewModel,
                     onNavigateBack = {},
                     onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
                     onNavigateToSyncStatus = { navController.navigate(Screen.SyncStatus.route) },
@@ -203,8 +205,10 @@ fun MainScreen(
                 NotificationSettingsScreen(onBackClick = { navController.popBackStack() })
             }
 
-            composable(Screen.EditProfile.route) {
-                EditProfileScreen(viewModel = hiltViewModel(), onNavigateBack = { navController.popBackStack() })
+            composable(Screen.EditProfile.route) { backStackEntry ->
+                val profileEntry = remember(backStackEntry) { navController.getBackStackEntry(Screen.Profile.route) }
+                val profileViewModel: ProfileViewModel = hiltViewModel(profileEntry)
+                EditProfileScreen(viewModel = profileViewModel, onNavigateBack = { navController.popBackStack() })
             }
 
             composable(Screen.CreatePublicacion.route) {

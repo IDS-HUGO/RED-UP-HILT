@@ -1,6 +1,10 @@
 package com.hugodev.red_up.features.auth.presentation.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +24,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 //import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -48,26 +54,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.rememberAsyncImagePainter
 import com.hugodev.red_up.R
 import com.hugodev.red_up.features.auth.presentation.viewmodels.RegisterViewModel
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,6 +87,41 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var currentPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                currentPhotoUri?.let { viewModel.onFotoUriChange(it) }
+            }
+        }
+    )
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            uri?.let { viewModel.onFotoUriChange(it) }
+        }
+    )
+
+    fun launchCamera() {
+        val photoFile = File(context.externalCacheDir ?: context.cacheDir, "profile_${System.currentTimeMillis()}.jpg")
+        currentPhotoUri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            photoFile
+        )
+        val uri = currentPhotoUri
+        if (uri != null) {
+            cameraLauncher.launch(uri)
+        }
+    }
+
+    fun launchGallery() {
+        galleryLauncher.launch("image/*")
+    }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -313,26 +357,82 @@ fun RegisterScreen(
                         )
                     )
 
-                    OutlinedTextField(
+                    // Foto de perfil selector
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        value = uiState.fotoUrl,
-                        onValueChange = viewModel::onFotoUrlChange,
-                        label = { Text(text = "URL de foto de perfil (opcional)") },
-                        placeholder = { Text(text = "https://ejemplo.com/foto.jpg") },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Foto de perfil (opcional)",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
                         )
-                    )
+
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clickable { /* TODO: show options */ },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (uiState.fotoUri != null) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(uiState.fotoUri),
+                                    contentDescription = "Foto de perfil seleccionada",
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Seleccionar foto",
+                                    modifier = Modifier.size(50.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { launchCamera() },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Camera,
+                                    contentDescription = "Tomar foto",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Cámara")
+                            }
+
+                            Button(
+                                onClick = { launchGallery() },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PhotoLibrary,
+                                    contentDescription = "Elegir de galería",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Galería")
+                            }
+                        }
+                    }
 
                     OutlinedTextField(
                         modifier = Modifier.fillMaxWidth(),
@@ -356,9 +456,9 @@ fun RegisterScreen(
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = if (passwordVisible) {
-                                        Icons.Default.Lock
+                                        Icons.Default.VisibilityOff
                                     } else {
-                                        Icons.Default.Check
+                                        Icons.Default.Visibility
                                     },
                                     contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
                                 )

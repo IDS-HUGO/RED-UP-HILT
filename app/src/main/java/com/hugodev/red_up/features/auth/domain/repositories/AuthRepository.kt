@@ -1,6 +1,7 @@
 package com.hugodev.red_up.features.auth.domain.repositories
 
 import com.hugodev.red_up.features.auth.domain.entities.AuthUser
+import okhttp3.MultipartBody
 
 interface AuthRepository {
     suspend fun login(email: String, password: String): Result<AuthUser>
@@ -12,7 +13,7 @@ interface AuthRepository {
         apellidoPaterno: String,
         apellidoMaterno: String?,
         fechaNacimiento: String,
-        fotoUrl: String?,
+        fotoPerfil: MultipartBody.Part?,
         password: String
     ): Result<AuthUser>
 
