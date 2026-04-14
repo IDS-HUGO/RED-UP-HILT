@@ -73,7 +73,7 @@ fun GroupDetailScreen(
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             shape = CircleShape
                         ) {
-                            Icon(Icons.Default.PersonAdd, contentDescription = "Agregar miembros")
+                            Icon(Icons.Default.Add, contentDescription = "Agregar miembros")
                         }
                     }
                     FloatingActionButton(
@@ -82,7 +82,7 @@ fun GroupDetailScreen(
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         shape = CircleShape
                     ) {
-                        Icon(Icons.Default.Chat, contentDescription = "Abrir chat")
+                        Icon(Icons.Default.Email, contentDescription = "Abrir chat")
                     }
                 }
             }
@@ -111,7 +111,7 @@ fun GroupDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Surface(modifier = Modifier.size(64.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
                                         Box(contentAlignment = Alignment.Center) {
-                                            Icon(Icons.Default.Groups, null, modifier = Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                            Icon(Icons.Default.AccountCircle, null, modifier = Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
                                         }
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))

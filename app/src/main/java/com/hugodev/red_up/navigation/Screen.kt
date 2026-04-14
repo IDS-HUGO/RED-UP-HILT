@@ -47,6 +47,10 @@ sealed class Screen(val route: String) {
     // Sync status and diagnostics
     object SyncStatus : Screen("sync_status")
 
+    // Notifications
+    object NotificationCenter : Screen("notification_center")
+    object NotificationSettings : Screen("notification_settings")
+
     // Perfil de otro usuario
     object UserProfile : Screen("user_profile/{userId}") {
         fun createRoute(userId: Long) = "user_profile/$userId"

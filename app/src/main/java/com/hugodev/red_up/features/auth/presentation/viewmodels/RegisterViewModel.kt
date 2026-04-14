@@ -1,8 +1,13 @@
 package com.hugodev.red_up.features.auth.presentation.viewmodels
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hugodev.red_up.core.utils.compressImageForUpload
 import com.hugodev.red_up.features.auth.domain.usecases.RegisterUseCase
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -11,6 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class RegisterUiState(
     val nombre: String = "",
@@ -18,6 +26,7 @@ data class RegisterUiState(
     val apellidoMaterno: String = "",
     val correo: String = "",
     val fechaNacimiento: String = "",
+    val fotoUri: Uri? = null,
     val password: String = "",
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
@@ -27,8 +36,12 @@ data class RegisterUiState(
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val registerUseCase: RegisterUseCase
 ) : ViewModel() {
+    private companion object {
+        const val TAG = "RegisterImageUpload"
+    }
 
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -51,6 +64,11 @@ class RegisterViewModel @Inject constructor(
 
     fun onFechaNacimientoChange(value: String) {
         _uiState.value = _uiState.value.copy(fechaNacimiento = value, error = null)
+    }
+
+    fun onFotoUriChange(value: Uri?) {
+        Log.d(TAG, "onFotoUriChange uri=$value")
+        _uiState.value = _uiState.value.copy(fotoUri = value, error = null)
     }
 
     fun onPasswordChange(value: String) {
@@ -85,6 +103,11 @@ class RegisterViewModel @Inject constructor(
             _uiState.value = state.copy(error = "Fecha de nacimiento invalida. Usa YYYY-MM-DD")
             return
         }
+        if (state.fotoUri != null && !isImageSizeValid(state.fotoUri)) {
+            Log.w(TAG, "Image rejected by local size validation uri=${state.fotoUri}")
+            _uiState.value = state.copy(error = "La imagen debe ser menor o igual a 5MB")
+            return
+        }
 
         viewModelScope.launch {
             _uiState.value = state.copy(
@@ -92,18 +115,34 @@ class RegisterViewModel @Inject constructor(
                 error = null,
                 fechaNacimiento = fechaNormalizada
             )
+            val fotoPart = state.fotoUri?.let { uri ->
+                Log.d(TAG, "Creating multipart from uri=$uri")
+                createMultipartBodyPart(uri)
+            }
+            if (state.fotoUri != null && fotoPart == null) {
+                Log.e(TAG, "createMultipartBodyPart returned null uri=${state.fotoUri}")
+                _uiState.value = state.copy(
+                    isLoading = false,
+                    error = "No se pudo procesar la imagen seleccionada"
+                )
+                return@launch
+            }
+
             registerUseCase(
                 email = state.correo.trim(),
                 nombre = state.nombre.trim(),
                 apellidoPaterno = state.apellidoPaterno.trim(),
                 apellidoMaterno = state.apellidoMaterno.trim().takeIf { it.isNotEmpty() },
                 fechaNacimiento = fechaNormalizada,
+                fotoPerfil = fotoPart,
                 password = state.password
             ).fold(
                 onSuccess = {
+                    Log.d(TAG, "Register success. Image sent=${fotoPart != null}")
                     _uiState.value = state.copy(isLoading = false, isSuccess = true)
                 },
                 onFailure = { throwable ->
+                    Log.e(TAG, "Register failure with image=${fotoPart != null}", throwable)
                     _uiState.value = state.copy(
                         isLoading = false,
                         error = throwable.message ?: "No se pudo registrar"
@@ -132,7 +171,24 @@ class RegisterViewModel @Inject constructor(
         }
     }
 
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
+    private fun isImageSizeValid(uri: Uri): Boolean {
+        val size = context.contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize } ?: return true
+        val maxSizeBytes = 5L * 1024L * 1024L
+        if (size <= 0L) return true
+        Log.d(TAG, "isImageSizeValid uri=$uri size=$size max=$maxSizeBytes")
+        return size <= maxSizeBytes
     }
+
+    private fun createMultipartBodyPart(uri: Uri): MultipartBody.Part? {
+        return try {
+            val bytes = compressImageForUpload(context, uri) ?: return null
+            Log.d(TAG, "Compressed image uri=$uri bytes=${bytes.size}")
+            val requestBody = bytes.toRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData("foto_perfil", "profile_image.jpg", requestBody)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating multipart uri=$uri", e)
+            null
+        }
+    }
+
 }

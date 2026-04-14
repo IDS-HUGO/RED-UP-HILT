@@ -22,11 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -220,7 +220,7 @@ fun LoginScreen(
                 placeholder = { Text(text = "student@upred.edu") },
                 leadingIcon = { 
                     Icon(
-                        Icons.Default.Mail, 
+                        Icons.Default.Email,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     ) 
@@ -278,7 +278,7 @@ fun LoginScreen(
                             } else {
                                 Icons.Default.Visibility
                             },
-                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -365,90 +365,6 @@ fun LoginScreen(
 
             // Error message
             if (!uiState.error.isNullOrBlank()) {
-
-    if (showForgotDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                showForgotDialog = false
-                viewModel.clearForgotState()
-            },
-            title = { Text("Recuperar contrasena") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = forgotEmail,
-                        onValueChange = { forgotEmail = it },
-                        label = { Text("Correo institucional") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = forgotCode,
-                        onValueChange = { forgotCode = it },
-                        label = { Text("Codigo (6 digitos)") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = forgotNewPassword,
-                        onValueChange = { forgotNewPassword = it },
-                        label = { Text("Nueva contrasena") },
-                        visualTransformation = PasswordVisualTransformation(),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    if (!uiState.forgotMessage.isNullOrBlank()) {
-                        Text(
-                            text = uiState.forgotMessage.orEmpty(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    if (!uiState.forgotDebugCode.isNullOrBlank()) {
-                        Text(
-                            text = "Codigo de prueba: ${uiState.forgotDebugCode}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.confirmPasswordReset(
-                            email = forgotEmail,
-                            code = forgotCode,
-                            newPassword = forgotNewPassword
-                        )
-                    },
-                    enabled = !uiState.isForgotLoading
-                ) {
-                    Text("Actualizar")
-                }
-            },
-            dismissButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(
-                        onClick = { viewModel.requestPasswordReset(forgotEmail) },
-                        enabled = !uiState.isForgotLoading
-                    ) {
-                        Text("Enviar codigo")
-                    }
-                    TextButton(
-                        onClick = {
-                            showForgotDialog = false
-                            viewModel.clearForgotState()
-                        }
-                    ) {
-                        Text("Cerrar")
-                    }
-                }
-            }
-        )
-    }
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -544,5 +460,89 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    if (showForgotDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showForgotDialog = false
+                viewModel.clearForgotState()
+            },
+            title = { Text("Recuperar contrasena") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = forgotEmail,
+                        onValueChange = { forgotEmail = it },
+                        label = { Text("Correo institucional") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = forgotCode,
+                        onValueChange = { forgotCode = it },
+                        label = { Text("Codigo (6 digitos)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = forgotNewPassword,
+                        onValueChange = { forgotNewPassword = it },
+                        label = { Text("Nueva contrasena") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    if (!uiState.forgotMessage.isNullOrBlank()) {
+                        Text(
+                            text = uiState.forgotMessage.orEmpty(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    if (!uiState.forgotDebugCode.isNullOrBlank()) {
+                        Text(
+                            text = "Codigo de prueba: ${uiState.forgotDebugCode}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.confirmPasswordReset(
+                            email = forgotEmail,
+                            code = forgotCode,
+                            newPassword = forgotNewPassword
+                        )
+                    },
+                    enabled = !uiState.isForgotLoading
+                ) {
+                    Text("Actualizar")
+                }
+            },
+            dismissButton = {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(
+                        onClick = { viewModel.requestPasswordReset(forgotEmail) },
+                        enabled = !uiState.isForgotLoading
+                    ) {
+                        Text("Enviar codigo")
+                    }
+                    TextButton(
+                        onClick = {
+                            showForgotDialog = false
+                            viewModel.clearForgotState()
+                        }
+                    ) {
+                        Text("Cerrar")
+                    }
+                }
+            }
+        )
     }
 }

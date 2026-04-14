@@ -6,6 +6,7 @@ import com.hugodev.red_up.features.publications.data.datasources.remote.models.C
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.DeviceRegistrationRequestDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.DeviceTokenUpdateRequestDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.NotificationConfigDto
+import com.hugodev.red_up.features.publications.data.datasources.remote.models.NotificationDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.NotificationSummaryDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.CreatePublicationRequestDto
 import com.hugodev.red_up.features.publications.data.datasources.remote.models.ProfileDto
@@ -58,14 +59,19 @@ interface UpRedApi {
     @GET("api/usuarios/perfil/actual")
     suspend fun getCurrentProfile(): ProfileDto
 
-    @GET("api/usuarios/{usuarioId}/perfil")
+    @GET("api/usuarios/{usuarioId}")
     suspend fun getUserProfile(@Path("usuarioId") userId: Long): ProfileDto
 
     @GET("api/usuarios/{usuarioId}/stats")
     suspend fun getUserStats(@Path("usuarioId") usuarioId: Long): UserStatsDto
 
+    @Multipart
     @PUT("api/usuarios/perfil/actualizar")
-    suspend fun updateCurrentProfile(@Body request: UpdateProfileRequestDto): ProfileDto
+    suspend fun updateCurrentProfile(
+        @Part("biografia") biografia: RequestBody? = null,
+        @Part("telefono") telefono: RequestBody? = null,
+        @Part fotoPerfil: MultipartBody.Part? = null
+    ): ProfileDto
 
     @POST("api/usuarios/{usuarioId}/seguir")
     suspend fun followUser(@Path("usuarioId") usuarioId: Long): ApiMessageDto
@@ -90,4 +96,10 @@ interface UpRedApi {
 
     @GET("api/notificaciones/resumen")
     suspend fun getNotificationSummary(): NotificationSummaryDto
+
+    @GET("api/notificaciones")
+    suspend fun getNotifications(
+        @Query("skip") skip: Int = 0,
+        @Query("limit") limit: Int = 50
+    ): List<NotificationDto>
 }

@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mail
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Person
+//import androidx.compose.material.icons.filled.Mail
+//import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,12 +33,12 @@ fun ChatsFeatureScreen(
     ) {
         Text(text = "Chats", style = MaterialTheme.typography.headlineSmall)
         Button(onClick = onOpenIndividualChats, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.Mail, contentDescription = null)
+            Icon(Icons.Default.Email, contentDescription = null)
             Spacer(modifier = Modifier.padding(horizontal = 4.dp))
             Text("Chat individual")
         }
         Button(onClick = onOpenGroupChats, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.People, contentDescription = null)
+            Icon(Icons.Default.Person, contentDescription = null)
             Spacer(modifier = Modifier.padding(horizontal = 4.dp))
             Text("Chat grupal")
         }

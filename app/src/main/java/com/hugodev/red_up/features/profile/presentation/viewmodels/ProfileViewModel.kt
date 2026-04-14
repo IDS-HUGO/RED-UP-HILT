@@ -4,12 +4,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.features.publications.data.datasources.remote.api.UpRedApi
-import com.hugodev.red_up.features.publications.data.datasources.remote.models.UpdateProfileRequestDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class UserProfile(
     val id: Long,
@@ -97,38 +99,18 @@ class ProfileViewModel @Inject constructor(
                 // Cargamos siempre stats (lo más probable que exista)
                 val stats = upRedApi.getUserStats(userId)
 
-                // Intentamos cargar el perfil completo, pero si falla,
-                // construimos un perfil mínimo a partir de las stats.
-                val profile = try {
-                    upRedApi.getUserProfile(userId)
-                } catch (e: Exception) {
-                    null
-                }
-
-                val userProfile = profile?.let {
-                    UserProfile(
-                        id = it.id,
-                        nombre = it.nombre,
-                        apellidoPaterno = it.apellidoPaterno,
-                        apellidoMaterno = it.apellidoMaterno.orEmpty(),
-                        correoInstitucional = it.correoInstitucional,
-                        fotoPerfil = it.fotoPerfilUrl,
-                        biografia = it.biografia,
-                        telefono = it.telefono,
-                        carrera = it.carrera?.nombre,
-                        cuatrimestre = it.cuatrimestre?.numero
-                    )
-                } ?: UserProfile(
-                    id = userId,
-                    nombre = "Usuario $userId",
-                    apellidoPaterno = "",
-                    apellidoMaterno = "",
-                    correoInstitucional = "",
-                    fotoPerfil = null,
-                    biografia = null,
-                    telefono = null,
-                    carrera = null,
-                    cuatrimestre = null
+                val profile = upRedApi.getUserProfile(userId)
+                val userProfile = UserProfile(
+                    id = profile.id,
+                    nombre = profile.nombre,
+                    apellidoPaterno = profile.apellidoPaterno,
+                    apellidoMaterno = profile.apellidoMaterno.orEmpty(),
+                    correoInstitucional = profile.correoInstitucional,
+                    fotoPerfil = profile.fotoPerfilUrl,
+                    biografia = profile.biografia,
+                    telefono = profile.telefono,
+                    carrera = profile.carrera?.nombre,
+                    cuatrimestre = profile.cuatrimestre?.numero
                 )
 
                 _profileState.value = _profileState.value.copy(
@@ -197,17 +179,22 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(biography: String?, telefono: String?) {
+    fun updateProfile(biography: String?, telefono: String?, fotoPart: MultipartBody.Part?) {
         viewModelScope.launch {
             _profileState.value = _profileState.value.copy(isLoading = true)
             try {
-                val updated = upRedApi.updateCurrentProfile(UpdateProfileRequestDto(biografia = biography, telefono = telefono))
+                val updated = upRedApi.updateCurrentProfile(
+                    biografia = biography?.toRequestBody("text/plain".toMediaType()),
+                    telefono = telefono?.toRequestBody("text/plain".toMediaType()),
+                    fotoPerfil = fotoPart
+                )
                 _profileState.value = _profileState.value.copy(
                     userProfile = _profileState.value.userProfile?.copy(
                         nombre = updated.nombre,
                         apellidoPaterno = updated.apellidoPaterno,
                         biografia = updated.biografia,
-                        telefono = updated.telefono
+                        telefono = updated.telefono,
+                        fotoPerfil = updated.fotoPerfilUrl
                     ),
                     success = "Perfil actualizado",
                     isLoading = false

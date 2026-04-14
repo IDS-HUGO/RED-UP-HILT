@@ -1,10 +1,6 @@
 package com.hugodev.red_up.features.publications.presentation.screens
 
 import android.Manifest
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.media.ExifInterface
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -71,7 +67,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.hugodev.red_up.features.publications.presentation.viewmodels.CreatePublicacionViewModel
-import java.io.ByteArrayOutputStream
+import com.hugodev.red_up.core.utils.compressImageForUpload
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -221,6 +217,7 @@ fun CreateEditPublicacionScreen(
             }
 
             // Tarjeta del formulario
+            //Prueba ssh key
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -396,71 +393,4 @@ private fun createTempImageUri(context: Context): Uri {
         "${context.packageName}.fileprovider",
         file
     )
-}
-
-private fun compressImageForUpload(context: Context, imageUri: Uri): ByteArray? {
-    val sourceBytes = context.contentResolver.openInputStream(imageUri)?.use { it.readBytes() } ?: return null
-
-    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size, bounds)
-
-    val maxDimension = 1280
-    var sampleSize = 1
-    while (
-        bounds.outWidth / sampleSize > maxDimension ||
-        bounds.outHeight / sampleSize > maxDimension
-    ) {
-        sampleSize *= 2
-    }
-
-    val bitmap = BitmapFactory.decodeByteArray(
-        sourceBytes,
-        0,
-        sourceBytes.size,
-        BitmapFactory.Options().apply {
-            inSampleSize = sampleSize
-            inPreferredConfig = Bitmap.Config.ARGB_8888
-        }
-    ) ?: return null
-
-    val rotatedBitmap = rotateBitmapIfRequired(context, imageUri, bitmap)
-    val output = ByteArrayOutputStream()
-    val maxUploadBytes = 900 * 1024
-    var quality = 85
-
-    do {
-        output.reset()
-        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, quality, output)
-        quality -= 5
-    } while (output.size() > maxUploadBytes && quality >= 35)
-
-    if (rotatedBitmap !== bitmap) {
-        bitmap.recycle()
-    }
-    rotatedBitmap.recycle()
-
-    return output.toByteArray()
-}
-
-private fun rotateBitmapIfRequired(context: Context, imageUri: Uri, bitmap: Bitmap): Bitmap {
-    val orientation = context.contentResolver.openInputStream(imageUri)?.use { inputStream ->
-        ExifInterface(inputStream).getAttributeInt(
-            ExifInterface.TAG_ORIENTATION,
-            ExifInterface.ORIENTATION_NORMAL
-        )
-    } ?: ExifInterface.ORIENTATION_NORMAL
-
-    val rotation = when (orientation) {
-        ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-        ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-        ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-        else -> 0f
-    }
-
-    if (rotation == 0f) {
-        return bitmap
-    }
-
-    val matrix = Matrix().apply { postRotate(rotation) }
-    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 }

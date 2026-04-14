@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
-import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -34,6 +34,8 @@ import com.hugodev.red_up.features.home.presentation.screens.HomeFeedScreen
 import com.hugodev.red_up.features.publicaciones.comments.presentation.screens.CommentsScreen
 import com.hugodev.red_up.features.publicaciones.comments.presentation.viewmodels.CommentsViewModel
 import com.hugodev.red_up.features.sync.presentation.screens.SyncStatusScreen
+import com.hugodev.red_up.features.notifications.presentation.screens.NotificationCenterScreen
+import com.hugodev.red_up.features.notifications.presentation.screens.NotificationSettingsScreen
 import com.hugodev.red_up.features.profile.presentation.screens.EditProfileScreen
 import com.hugodev.red_up.features.profile.presentation.screens.MyProfileScreen
 import com.hugodev.red_up.features.profile.presentation.screens.UserProfileScreen
@@ -47,9 +49,9 @@ import com.hugodev.red_up.features.qr.QrScannerScreen
 import com.hugodev.red_up.navigation.Screen
 
 enum class BottomNavItem(val route: String, val label: String, val icon: ImageVector) {
-    Publicaciones(Screen.HomeFeed.route, "Publicaciones", Icons.Default.Article),
-    Chats(Screen.ChatsHub.route, "Chats", Icons.Default.Forum),
-    Perfil(Screen.Profile.route, "Perfil", Icons.Default.Person),
+    Publicaciones(Screen.HomeFeed.route, "Publicaciones", Icons.Filled.Article),
+    Chats(Screen.ChatsHub.route, "Chats", Icons.Filled.Chat),
+    Perfil(Screen.Profile.route, "Perfil", Icons.Filled.Person),
 }
 
 @Composable
@@ -175,13 +177,16 @@ fun MainScreen(
                 )
             }
 
-            composable(Screen.Profile.route) {
+            composable(Screen.Profile.route) { backStackEntry ->
                 selectedItem = 2
+                val profileEntry = remember(backStackEntry) { navController.getBackStackEntry(Screen.Profile.route) }
+                val profileViewModel: ProfileViewModel = hiltViewModel(profileEntry)
                 MyProfileScreen(
-                    viewModel = hiltViewModel(),
+                    viewModel = profileViewModel,
                     onNavigateBack = {},
                     onNavigateToEditProfile = { navController.navigate(Screen.EditProfile.route) },
-                    onNavigateToSyncStatus = { navController.navigate(Screen.SyncStatus.route) }
+                    onNavigateToSyncStatus = { navController.navigate(Screen.SyncStatus.route) },
+                    onNavigateToNotificationCenter = { navController.navigate(Screen.NotificationCenter.route) }
                 )
             }
 
@@ -189,8 +194,21 @@ fun MainScreen(
                 SyncStatusScreen(onBackClick = { navController.popBackStack() })
             }
 
-            composable(Screen.EditProfile.route) {
-                EditProfileScreen(viewModel = hiltViewModel(), onNavigateBack = { navController.popBackStack() })
+            composable(Screen.NotificationCenter.route) {
+                NotificationCenterScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToSettings = { navController.navigate(Screen.NotificationSettings.route) }
+                )
+            }
+
+            composable(Screen.NotificationSettings.route) {
+                NotificationSettingsScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Screen.EditProfile.route) { backStackEntry ->
+                val profileEntry = remember(backStackEntry) { navController.getBackStackEntry(Screen.Profile.route) }
+                val profileViewModel: ProfileViewModel = hiltViewModel(profileEntry)
+                EditProfileScreen(viewModel = profileViewModel, onNavigateBack = { navController.popBackStack() })
             }
 
             composable(Screen.CreatePublicacion.route) {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -80,7 +81,7 @@ fun InviteMembersScreen(
                     onClick = { showQrScanner = true }
                 ) {
                     Icon(
-                        Icons.Default.QrCodeScanner,
+                        Icons.Filled.QrCodeScanner,
                         contentDescription = "Escanear QR para invitar"
                     )
                 }
@@ -245,7 +246,7 @@ fun UserListItem(
             } else {
                 IconButton(onClick = onInviteClick) {
                     Icon(
-                        Icons.Default.PersonAdd,
+                        Icons.Default.Add,
                         contentDescription = "Invitar",
                         tint = MaterialTheme.colorScheme.primary
                     )

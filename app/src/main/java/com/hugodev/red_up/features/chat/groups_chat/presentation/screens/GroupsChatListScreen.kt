@@ -20,9 +20,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -187,7 +188,7 @@ fun GroupsChatListScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    Icons.Default.Groups,
+                                    Icons.Default.AccountCircle,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
@@ -250,7 +251,7 @@ private fun EmptyGroupsState() {
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                Icons.Default.Groups,
+                Icons.Default.AccountCircle,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -310,7 +311,7 @@ private fun GroupChatCard(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                Icons.Default.Groups,
+                                Icons.Default.AccountCircle,
                                 contentDescription = null,
                                 modifier = Modifier.size(32.dp),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
@@ -358,7 +359,7 @@ private fun GroupChatCard(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Icon(
-                            Icons.Default.People,
+                            Icons.Default.Person,
                             contentDescription = "Miembros",
                             modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer
