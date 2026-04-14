@@ -27,6 +27,7 @@ fun EditProfileScreen(
     val state by viewModel.profileState.collectAsState()
     var biografia by remember { mutableStateOf(state.userProfile?.biografia ?: "") }
     var telefono by remember { mutableStateOf(state.userProfile?.telefono ?: "") }
+    var fotoUrl by remember { mutableStateOf(state.userProfile?.fotoPerfil ?: "") }
     var isSaving by remember { mutableStateOf(false) }
 
     Column(
@@ -110,6 +111,17 @@ fun EditProfileScreen(
                 placeholder = { Text("Tu número de teléfono") }
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Foto URL
+            OutlinedTextField(
+                value = fotoUrl,
+                onValueChange = { fotoUrl = it },
+                label = { Text("URL de foto de perfil") },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("https://ejemplo.com/foto.jpg") }
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // Botones
@@ -118,7 +130,8 @@ fun EditProfileScreen(
                     isSaving = true
                     viewModel.updateProfile(
                         biography = biografia.takeIf { it.isNotEmpty() },
-                        telefono = telefono.takeIf { it.isNotEmpty() }
+                        telefono = telefono.takeIf { it.isNotEmpty() },
+                        fotoUrl = fotoUrl.takeIf { it.isNotEmpty() }
                     )
                     isSaving = false
                     onNavigateBack()

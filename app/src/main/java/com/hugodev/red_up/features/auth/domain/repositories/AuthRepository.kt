@@ -12,6 +12,7 @@ interface AuthRepository {
         apellidoPaterno: String,
         apellidoMaterno: String?,
         fechaNacimiento: String,
+        fotoUrl: String?,
         password: String
     ): Result<AuthUser>
 

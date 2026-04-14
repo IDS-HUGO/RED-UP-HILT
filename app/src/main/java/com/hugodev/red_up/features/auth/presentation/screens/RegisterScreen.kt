@@ -19,7 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarMonth
+//import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
@@ -55,6 +55,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -296,12 +299,33 @@ fun RegisterScreen(
                         placeholder = { Text(text = "YYYY-MM-DD") },
                         leadingIcon = {
                             Icon(
-                                Icons.Default.CalendarMonth,
+                                Icons.Default.DateRange,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
+                    )
+
+                    OutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = uiState.fotoUrl,
+                        onValueChange = viewModel::onFotoUrlChange,
+                        label = { Text(text = "URL de foto de perfil (opcional)") },
+                        placeholder = { Text(text = "https://ejemplo.com/foto.jpg") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -332,9 +356,9 @@ fun RegisterScreen(
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = if (passwordVisible) {
-                                        Icons.Default.VisibilityOff
+                                        Icons.Default.Lock
                                     } else {
-                                        Icons.Default.Visibility
+                                        Icons.Default.Check
                                     },
                                     contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
                                 )

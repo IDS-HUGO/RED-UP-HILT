@@ -59,7 +59,8 @@ data class UserStatsDto(
 
 data class UpdateProfileRequestDto(
     @SerializedName("biografia") val biografia: String? = null,
-    @SerializedName("telefono") val telefono: String? = null
+    @SerializedName("telefono") val telefono: String? = null,
+    @SerializedName("foto_perfil_url") val fotoPerfilUrl: String? = null
 )
 
 data class DeviceRegistrationRequestDto(

@@ -1,0 +1,19 @@
+name: Local Config
+version: 1.0.0
+schema: v1
+models:
+  - title: Gemini 1.5 Flash (Veloz)
+    provider: google-generative-ai
+    model: gemini-1.5-flash
+    apiKey: AIzaSyBo-lxbX-VQLon8Q7cfuxG-QFJfPTw5Fek
+  - uses: google/gemini-3.1-pro-preview
+    with:
+      GEMINI_API_KEY: AIzaSyD7ejBnueTyhCEQD7gl6uvkFRHTIZpj1cw
+  - uses: google/gemini-3-flash-preview
+    with:
+      GEMINI_API_KEY: AIzaSyD7ejBnueTyhCEQD7gl6uvkFRHTIZpj1cw
+tabAutocompleteModel:
+  title: Gemini 1.5 Flash (Veloz)
+  provider: google-generative-ai
+  model: gemini-1.5-flash
+  apiKey: AIzaSyBo-lxbX-VQLon8Q7cfuxG-QFJfPTw5Fek

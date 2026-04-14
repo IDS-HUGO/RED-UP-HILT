@@ -13,6 +13,7 @@ class RegisterUseCase @Inject constructor(
         apellidoPaterno: String,
         apellidoMaterno: String?,
         fechaNacimiento: String,
+        fotoUrl: String?,
         password: String
     ): Result<AuthUser> {
         return authRepository.register(
@@ -21,6 +22,7 @@ class RegisterUseCase @Inject constructor(
             apellidoPaterno = apellidoPaterno,
             apellidoMaterno = apellidoMaterno,
             fechaNacimiento = fechaNacimiento,
+            fotoUrl = fotoUrl,
             password = password
         )
     }

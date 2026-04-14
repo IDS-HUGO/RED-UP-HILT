@@ -18,6 +18,7 @@ data class RegisterUiState(
     val apellidoMaterno: String = "",
     val correo: String = "",
     val fechaNacimiento: String = "",
+    val fotoUrl: String = "",
     val password: String = "",
     val confirmPassword: String = "",
     val isLoading: Boolean = false,
@@ -51,6 +52,10 @@ class RegisterViewModel @Inject constructor(
 
     fun onFechaNacimientoChange(value: String) {
         _uiState.value = _uiState.value.copy(fechaNacimiento = value, error = null)
+    }
+
+    fun onFotoUrlChange(value: String) {
+        _uiState.value = _uiState.value.copy(fotoUrl = value, error = null)
     }
 
     fun onPasswordChange(value: String) {
@@ -98,6 +103,7 @@ class RegisterViewModel @Inject constructor(
                 apellidoPaterno = state.apellidoPaterno.trim(),
                 apellidoMaterno = state.apellidoMaterno.trim().takeIf { it.isNotEmpty() },
                 fechaNacimiento = fechaNormalizada,
+                fotoUrl = state.fotoUrl.trim().takeIf { it.isNotEmpty() },
                 password = state.password
             ).fold(
                 onSuccess = {

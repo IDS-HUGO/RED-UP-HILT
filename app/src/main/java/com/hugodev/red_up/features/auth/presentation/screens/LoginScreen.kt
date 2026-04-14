@@ -22,11 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -220,7 +220,7 @@ fun LoginScreen(
                 placeholder = { Text(text = "student@upred.edu") },
                 leadingIcon = { 
                     Icon(
-                        Icons.Default.Mail, 
+                        Icons.Default.Email,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     ) 
@@ -278,7 +278,7 @@ fun LoginScreen(
                             } else {
                                 Icons.Default.Visibility
                             },
-                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

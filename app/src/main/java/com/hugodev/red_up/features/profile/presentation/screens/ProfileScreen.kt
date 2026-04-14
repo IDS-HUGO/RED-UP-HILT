@@ -1,22 +1,27 @@
 package com.hugodev.red_up.features.profile.presentation.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import coil.compose.rememberAsyncImagePainter
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,7 +37,8 @@ fun MyProfileScreen(
     viewModel: ProfileViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
-    onNavigateToSyncStatus: () -> Unit
+    onNavigateToSyncStatus: () -> Unit,
+    onNavigateToNotificationCenter: () -> Unit
 ) {
     val state by viewModel.profileState.collectAsState()
     var showQrDialog by remember { mutableStateOf(false) }
@@ -66,13 +72,16 @@ fun MyProfileScreen(
             actions = {
                 // BOTÓN PARA MOSTRAR QR
                 IconButton(onClick = { showQrDialog = true }) {
-                    Icon(Icons.Default.QrCode, contentDescription = "Mostrar QR")
+                    Icon(Icons.Filled.QrCode, contentDescription = "Mostrar QR")
+                }
+                IconButton(onClick = onNavigateToNotificationCenter) {
+                    Icon(Icons.Filled.Notifications, contentDescription = "Centro de notificaciones")
                 }
                 IconButton(onClick = onNavigateToSyncStatus) {
-                    Icon(Icons.Default.Sync, contentDescription = "Estado de sincronizacion")
+                    Icon(Icons.Filled.Refresh, contentDescription = "Estado de sincronizacion")
                 }
                 IconButton(onClick = onNavigateToEditProfile) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar perfil")
+                    Icon(Icons.Filled.Edit, contentDescription = "Editar perfil")
                 }
             }
         )
@@ -223,13 +232,22 @@ fun ProfileContent(
             modifier = Modifier.size(100.dp).clip(CircleShape),
             color = MaterialTheme.colorScheme.primaryContainer
         ) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = profile.nombre.firstOrNull()?.toString() ?: "",
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+            if (!profile.fotoPerfil.isNullOrBlank()) {
+                Image(
+                    painter = rememberAsyncImagePainter(profile.fotoPerfil),
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
+            } else {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = profile.nombre.firstOrNull()?.toString() ?: "",
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
 

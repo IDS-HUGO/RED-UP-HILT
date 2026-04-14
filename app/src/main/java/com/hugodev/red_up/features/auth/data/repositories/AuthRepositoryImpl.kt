@@ -40,6 +40,7 @@ class AuthRepositoryImpl @Inject constructor(
         apellidoPaterno: String,
         apellidoMaterno: String?,
         fechaNacimiento: String,
+        fotoUrl: String?,
         password: String
     ): Result<AuthUser> {
         return runCatching {
@@ -50,6 +51,7 @@ class AuthRepositoryImpl @Inject constructor(
                     apellidoPaterno = apellidoPaterno,
                     apellidoMaterno = apellidoMaterno,
                     fechaNacimiento = fechaNacimiento,
+                    fotoPerfilUrl = fotoUrl,
                     password = password
                 )
             )

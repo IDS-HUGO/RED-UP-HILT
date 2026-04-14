@@ -10,8 +10,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Groups
+//import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,7 +58,7 @@ fun ChatScreen(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)) {
-                            Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.Groups, null, modifier = Modifier.size(22.dp)) }
+                            Box(contentAlignment = Alignment.Center) { Icon(Icons.Default.AccountCircle, null, modifier = Modifier.size(22.dp)) }
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {

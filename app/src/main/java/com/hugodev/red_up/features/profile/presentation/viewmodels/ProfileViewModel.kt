@@ -197,17 +197,18 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(biography: String?, telefono: String?) {
+    fun updateProfile(biography: String?, telefono: String?, fotoUrl: String?) {
         viewModelScope.launch {
             _profileState.value = _profileState.value.copy(isLoading = true)
             try {
-                val updated = upRedApi.updateCurrentProfile(UpdateProfileRequestDto(biografia = biography, telefono = telefono))
+                val updated = upRedApi.updateCurrentProfile(UpdateProfileRequestDto(biografia = biography, telefono = telefono, fotoPerfilUrl = fotoUrl))
                 _profileState.value = _profileState.value.copy(
                     userProfile = _profileState.value.userProfile?.copy(
                         nombre = updated.nombre,
                         apellidoPaterno = updated.apellidoPaterno,
                         biografia = updated.biografia,
-                        telefono = updated.telefono
+                        telefono = updated.telefono,
+                        fotoPerfil = updated.fotoPerfilUrl
                     ),
                     success = "Perfil actualizado",
                     isLoading = false

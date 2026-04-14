@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Mail
+//import androidx.compose.material.icons.filled.Groups
+//import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
@@ -92,7 +94,7 @@ fun HomeScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Icon(Icons.Default.Mail, contentDescription = "Enviar mensaje")
+                Icon(Icons.Default.Email, contentDescription = "Enviar mensaje")
             }
         }
     ) { padding ->
@@ -193,7 +195,7 @@ private fun MessageTypeDialog(
         },
         confirmButton = {
             Button(onClick = onGroup) {
-                Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.padding(4.dp))
                 Text("Grupal")
             }

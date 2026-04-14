@@ -16,7 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.MailOutline
+//import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -97,7 +98,7 @@ fun IndividualChatListScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
-                            Icons.Default.Chat,
+                            Icons.Default.MailOutline,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
