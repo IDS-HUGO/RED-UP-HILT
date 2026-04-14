@@ -3,6 +3,9 @@ package com.hugodev.red_up.features.auth.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
+import android.util.Log
+import com.google.firebase.messaging.FirebaseMessaging
+import com.hugodev.red_up.core.data.AuthPreferences
 import com.hugodev.red_up.core.security.BiometricCredentialStore
 import com.hugodev.red_up.core.sync.SyncEventStore
 import com.hugodev.red_up.core.sync.SyncWork
@@ -37,6 +40,9 @@ class LoginViewModel @Inject constructor(
     private val biometricCredentialStore: BiometricCredentialStore,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
+    private companion object {
+        const val TAG = "LoginPushSync"
+    }
 
     private val _uiState = MutableStateFlow(
         LoginUiState(hasBiometricCredentials = biometricCredentialStore.hasCredentials())
@@ -105,7 +111,18 @@ class LoginViewModel @Inject constructor(
                             )
                         )
                     }
-                    SyncWork.enqueueTokenSync(appContext)
+                    FirebaseMessaging.getInstance().token
+                        .addOnSuccessListener { fcmToken ->
+                            Log.d(TAG, "FCM token fetched after login")
+                            viewModelScope.launch {
+                                AuthPreferences(appContext).saveFcmToken(fcmToken)
+                                SyncWork.enqueueTokenSync(appContext)
+                            }
+                        }
+                        .addOnFailureListener { error ->
+                            Log.e(TAG, "Failed to fetch FCM token after login", error)
+                            SyncWork.enqueueTokenSync(appContext)
+                        }
                     _uiState.value = state.copy(
                         email = email,
                         password = password,
