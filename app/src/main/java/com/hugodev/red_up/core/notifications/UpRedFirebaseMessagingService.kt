@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -20,6 +21,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class UpRedFirebaseMessagingService : FirebaseMessagingService() {
+    private companion object {
+        const val TAG = "UpRedFCM"
+        const val GROUP_KEY_UPRED = "upred_group"
+        const val CHANNEL_ID = "upred_push"
+        const val SUMMARY_ID = 1
+    }
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
@@ -45,6 +52,8 @@ class UpRedFirebaseMessagingService : FirebaseMessagingService() {
             ?: remoteMessage.data["body"]
             ?: "Tienes una nueva notificacion"
 
+        Log.d(TAG, "Push received. dataKeys=${remoteMessage.data.keys}")
+
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra(NotificationDeepLink.KEY_TARGET_TYPE, remoteMessage.data[NotificationDeepLink.KEY_TARGET_TYPE])
@@ -65,6 +74,8 @@ class UpRedFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val notificationId = stableNotificationId(remoteMessage)
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
@@ -72,10 +83,33 @@ class UpRedFirebaseMessagingService : FirebaseMessagingService() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setGroup(GROUP_KEY_UPRED)
+            .setOnlyAlertOnce(true)
             .build()
 
-        NotificationManagerCompat.from(this)
-            .notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), notification)
+        val manager = NotificationManagerCompat.from(this)
+        manager.notify(notificationId, notification)
+
+        // Notificación resumen para agrupar y evitar que se trabe la barra
+        val summary = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("UPRed")
+            .setContentText("Tienes nuevas notificaciones")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setGroup(GROUP_KEY_UPRED)
+            .setGroupSummary(true)
+            .setOnlyAlertOnce(true)
+            .build()
+        manager.notify(SUMMARY_ID, summary)
+    }
+
+    private fun stableNotificationId(remoteMessage: RemoteMessage): Int {
+        val targetType = remoteMessage.data[NotificationDeepLink.KEY_TARGET_TYPE].orEmpty()
+        val publicationId = remoteMessage.data[NotificationDeepLink.KEY_PUBLICATION_ID].orEmpty()
+        val followerId = remoteMessage.data[NotificationDeepLink.KEY_FOLLOWER_USER_ID].orEmpty()
+        val roomId = remoteMessage.data[NotificationDeepLink.KEY_ROOM_ID].orEmpty()
+        val raw = listOf(targetType, publicationId, followerId, roomId).joinToString("|")
+        return (raw.hashCode() and 0x7fffffff).takeIf { it != 0 } ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
     }
 
     private fun createChannelIfNeeded() {
@@ -91,7 +125,4 @@ class UpRedFirebaseMessagingService : FirebaseMessagingService() {
         manager.createNotificationChannel(channel)
     }
 
-    companion object {
-        const val CHANNEL_ID = "upred_push"
-    }
 }
