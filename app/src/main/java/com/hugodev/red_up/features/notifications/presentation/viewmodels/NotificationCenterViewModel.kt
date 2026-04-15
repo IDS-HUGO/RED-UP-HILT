@@ -1,5 +1,6 @@
 package com.hugodev.red_up.features.notifications.presentation.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hugodev.red_up.features.publications.data.datasources.remote.api.UpRedApi
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 data class NotificationCenterUiState(
     val notifications: List<NotificationItem> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
 )
 
 data class NotificationItem(
@@ -30,13 +32,13 @@ class NotificationCenterViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(NotificationCenterUiState())
     val uiState: StateFlow<NotificationCenterUiState> = _uiState.asStateFlow()
 
-    init {
+    fun refresh() {
         loadNotifications()
     }
 
     private fun loadNotifications() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             try {
                 val notifications = upRedApi.getNotifications().map { notification ->
                     NotificationItem(
@@ -46,9 +48,17 @@ class NotificationCenterViewModel @Inject constructor(
                         timestamp = notification.creadaEn ?: ""
                     )
                 }
-                _uiState.value = _uiState.value.copy(notifications = notifications, isLoading = false)
+                _uiState.value = _uiState.value.copy(
+                    notifications = notifications,
+                    isLoading = false,
+                    errorMessage = null
+                )
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false)
+                Log.e("NotificationCenter", "Error cargando notificaciones", e)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = e.message ?: "No se pudieron cargar las notificaciones"
+                )
             }
         }
     }
