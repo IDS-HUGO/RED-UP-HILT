@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessaging
 import com.hugodev.red_up.core.data.AuthPreferences
+import com.hugodev.red_up.core.sync.PushTokenRegistrar
 import com.hugodev.red_up.core.sync.SyncWork
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +26,11 @@ class DemoHiltApp : Application() {
 				CoroutineScope(Dispatchers.IO).launch {
 					val authPreferences = AuthPreferences(applicationContext)
 					authPreferences.saveFcmToken(token)
+					PushTokenRegistrar.syncNow(
+						context = applicationContext,
+						reason = "app_start_fcm_fetch",
+						explicitFcmToken = token
+					)
 					SyncWork.enqueueTokenSync(applicationContext)
 				}
 			}

@@ -13,6 +13,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.hugodev.red_up.MainActivity
 import com.hugodev.red_up.R
 import com.hugodev.red_up.core.data.AuthPreferences
+import com.hugodev.red_up.core.sync.PushTokenRegistrar
 import com.hugodev.red_up.core.sync.SyncWork
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,11 @@ class UpRedFirebaseMessagingService : FirebaseMessagingService() {
         super.onNewToken(token)
         CoroutineScope(Dispatchers.IO).launch {
             AuthPreferences(applicationContext).saveFcmToken(token)
+            PushTokenRegistrar.syncNow(
+                context = applicationContext,
+                reason = "firebase_on_new_token",
+                explicitFcmToken = token
+            )
             SyncWork.enqueueTokenSync(applicationContext)
         }
     }

@@ -8,6 +8,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.hugodev.red_up.core.data.AuthPreferences
 import com.hugodev.red_up.core.security.BiometricCredentialStore
 import com.hugodev.red_up.core.sync.SyncEventStore
+import com.hugodev.red_up.core.sync.PushTokenRegistrar
 import com.hugodev.red_up.core.sync.SyncWork
 import com.hugodev.red_up.features.auth.domain.usecases.ConfirmPasswordResetUseCase
 import com.hugodev.red_up.features.auth.domain.usecases.LoginUseCase
@@ -116,6 +117,11 @@ class LoginViewModel @Inject constructor(
                             Log.d(TAG, "FCM token fetched after login")
                             viewModelScope.launch {
                                 AuthPreferences(appContext).saveFcmToken(fcmToken)
+                                PushTokenRegistrar.syncNow(
+                                    context = appContext,
+                                    reason = "login_fcm_fetch",
+                                    explicitFcmToken = fcmToken
+                                )
                                 SyncWork.enqueueTokenSync(appContext)
                             }
                         }
